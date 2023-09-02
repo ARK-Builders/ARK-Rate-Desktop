@@ -61,14 +61,14 @@ export const CurrencyListProvider = ({ children }: any) => {
           };
         }
       );
-      cryptoData.rates.forEach(
+      cryptoData.forEach(
         (cryptoCurrency: {
           current_price: number;
           symbol: string;
           name: string;
         }) => {
-          list[cryptoCurrency.symbol] = {
-            conversionRate: cryptoCurrency.current_price as number,
+          list[cryptoCurrency.symbol.toUpperCase()] = {
+            conversionRate: 1 / cryptoCurrency.current_price as number,
             name: cryptoCurrency.name,
             isSelected: false,
           };
