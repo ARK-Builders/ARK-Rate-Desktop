@@ -63,13 +63,18 @@ const CurrencyListPopup = ({
   const [searchText, setSearchText] = useState<string>("");
 
   useEffect(() => {
-    searchText && setCurrencyList(currencies.filter((value) => value.includes(searchText)))
+    searchText &&
+      setCurrencyList(currencies.filter((value) => value.toLowerCase().includes(searchText.toLowerCase())));
   }, [searchText]);
 
   return (
     <PopupWrapper>
       <CloseIcon onClick={onClose} src={closeIcon} />
-      <SearchBar placeholder="Search" onChange={(e) => setSearchText(e.target.value)}/>
+      <SearchBar
+        placeholder="Search"
+        onChange={(e) => setSearchText(e.target.value)}
+        autoFocus
+      />
       <ListWrapper>
         {currencyList.map((currency) => (
           <CurrencyItem
