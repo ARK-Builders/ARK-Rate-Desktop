@@ -14,6 +14,10 @@ const TabButton = styled.button<{ isCurrentTab?: boolean }>(
   })
 );
 
+const TabsWrapper = styled.div(() => ({
+  marginBottom: "40px"
+}));
+
 const Wrapper = styled.div(() => ({
   marginLeft: "50px",
   marginTop: "50px",
@@ -89,24 +93,27 @@ const Assets = () => {
     });
   };
 
+  const selectedCurrencies = Object.keys(currencies.dict)
+  .filter((currency) => currencies.dict[currency].isSelected);
+
   return (
     <Wrapper>
-      <div style={{ marginBottom: "40px" }}>
+      <TabsWrapper>
         <Link to="/">
           <TabButton isCurrentTab={true}>Assets</TabButton>
         </Link>
         <Link to="/summary">
           <TabButton>Summary</TabButton>
         </Link>
-      </div>
+      </TabsWrapper>
 
-      {Object.keys(currencies.dict)
-        .filter((currency) => currencies.dict[currency].isSelected)
+      {selectedCurrencies.length > 0 ? selectedCurrencies
         .map((currency) => (
-          <CurrencyInputWrapper>
+          <CurrencyInputWrapper key={currency}>
             <input
               type="number"
               placeholder=" "
+              value={currencies.dict[currency].existingAmount}
               onChange={(e) => handleCurrencyInput(e.target.value, currency)}
             />
             <label>{currency}</label>
@@ -115,7 +122,7 @@ const Assets = () => {
               onClick={() => handleDeleteInput(currency)}
             />
           </CurrencyInputWrapper>
-        ))}
+        )): <p>Start by adding your assets using the "Add +" button below.</p>}
 
       <button onClick={() => toggleListState(true)}>Add +</button>
 

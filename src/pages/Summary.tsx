@@ -8,23 +8,33 @@ const TabButton = styled.button<{ isCurrentTab?: boolean }>(
     background: isCurrentTab ? "#ddd" : "white",
     margin: 0,
     borderRadius: 0,
-    outline: 'none',
+    outline: "none",
   })
 );
 
+const TabsWrapper = styled.div(() => ({
+  marginBottom: "40px",
+}));
 
 const Wrapper = styled.div(() => ({
-    marginLeft: "50px",
-    marginTop: "50px",
-  }));
+  marginLeft: "50px",
+  marginTop: "50px",
+}));
+
+const TablesWrapper = styled.div(() => ({
+  display: "flex",
+  flexWrap: "wrap",
+}));
 
 const Table = styled.table(() => ({
   boxShadow: "1px 2px 5px 0px #aaa",
   borderRadius: "2px",
-  marginBottom: "20px",
+  marginBottom: "30px",
   padding: "5px",
   borderCollapse: "collapse",
   minWidth: "350px",
+  height: "max-content",
+  marginRight: "30px",
 
   "& th": {
     textAlign: "left",
@@ -57,71 +67,79 @@ const Summary = () => {
       (currencyCode) => currencies.dict[currencyCode].isSelected
     );
 
-    // selectedCurrencies.forEach((currency) => setTotalList((prev) => ({...prev, [currency]: currencies.dict[currency].existingAmount || 0})));
-    selectedCurrencies.forEach((currency) => {
-      const currencyConvRate = currencies.dict[currency].conversionRate;
-      selectedCurrencies.forEach((otherCurrency) => {
+    const total: { [name: string]: number } = {};
+    const exchange: { [name: string]: number } = {};
+    for (let currency of selectedCurrencies) {
+      total[currency] = currencies.dict[currency].existingAmount || 0;
+    }
+    for (let currency of selectedCurrencies) {
+      for (let otherCurrency of selectedCurrencies) {
         if (currency !== otherCurrency) {
-          const otherCurrencyConvRate =
-            currencies.dict[otherCurrency].conversionRate;
-          const currencyToOtherCurrency =
-            currencyConvRate / otherCurrencyConvRate;
-          const otherCurrencyToCurrency = 1 / currencyToOtherCurrency;
-          setTotalList((prev) => ({
-            ...prev,
-            [otherCurrency]:
-              (currencies.dict[otherCurrency].existingAmount || 0) +
-              (currencies.dict[currency].existingAmount || 0) *
-                otherCurrencyToCurrency,
-            [currency]:
-              (currencies.dict[currency].existingAmount || 0) +
-              (currencies.dict[otherCurrency].existingAmount || 0) *
-                currencyToOtherCurrency,
-          }));
+          total[currency] =
+            (total[currency] || 0) +
+            (currencies.dict[otherCurrency].existingAmount || 0) *
+              (currencies.dict[currency].conversionRate /
+                currencies.dict[otherCurrency].conversionRate);
 
-          setExchangeList({
-            ...exchangeList,
-            [otherCurrency + "/" + currency]: currencyToOtherCurrency,
-            [currency + "/" + otherCurrency]: otherCurrencyToCurrency,
-          });
+          exchange[`${currency}/${otherCurrency}`] =
+            currencies.dict[otherCurrency].conversionRate /
+            currencies.dict[currency].conversionRate;
+          exchange[`${otherCurrency}/${currency}`] =
+            currencies.dict[currency].conversionRate /
+            currencies.dict[otherCurrency].conversionRate;
         }
-      });
-    });
+      }
+    }
+
+    setTotalList({ ...total });
+    setExchangeList({ ...exchange });
   }, []);
 
   return (
     <Wrapper>
-      <div style={{marginBottom: "40px"}}>
+      <TabsWrapper>
         <Link to="/">
           <TabButton>Assets</TabButton>
         </Link>
         <Link to="/summary">
-          <TabButton isCurrentTab>Summary</TabButton>
+          <TabButton isCurrentTab={true}>Summary</TabButton>
         </Link>
-      </div>
-      <Table>
-        <th>Total</th>
-        <tbody>
-          {Object.entries(totalList).map(([key, total]) => (
-            <tr>
-              <td>{key}</td>
-              <td>{total}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      </TabsWrapper>
 
-      <Table>
-        <th>Exchange</th>
-        <tbody>
-          {Object.entries(exchangeList).map(([key, rate]) => (
+      {Object.keys(totalList).length > 0 ? 
+      <TablesWrapper>
+        <Table>
+          <thead>
             <tr>
-              <td>{key}</td>
-              <td>{rate as string}</td>
+              <th>Total</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {Object.entries(totalList).map(([key, total]) => (
+              <tr key={key}>
+                <td>{key}</td>
+                <td>{total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+
+        <Table>
+          <thead>
+            <tr>
+              <th>Exchange</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(exchangeList).map(([key, rate]) => (
+              <tr key={key}>
+                <td>{key}</td>
+                <td>{rate as string}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </TablesWrapper>: <span>Nothing to show. Add your assets to get started.</span>}
     </Wrapper>
   );
 };
