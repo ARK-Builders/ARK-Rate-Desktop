@@ -87,7 +87,7 @@ const Summary = () => {
       <Tabs
         data={[
           { name: "Assets", path: "/" },
-          { name: "Summary", isCurrentTab: true, path: "/summary" },
+          { name: "Summary", path: "/summary" },
         ]}
       />
 

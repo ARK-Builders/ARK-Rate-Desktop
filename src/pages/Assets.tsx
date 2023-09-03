@@ -88,7 +88,7 @@ const Assets = () => {
     <Wrapper>
       <Tabs
         data={[
-          { name: "Assets", isCurrentTab: true, path: "/" },
+          { name: "Assets", path: "/" },
           { name: "Summary", path: "/summary" },
         ]}
       />

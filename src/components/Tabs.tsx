@@ -17,7 +17,6 @@ const TabsWrapper = styled.div(() => ({
 interface ITabData {
     path: string,
     name: string,
-    isCurrentTab?: boolean,
 }
 
 const Tabs = ({data}: {data: ITabData[]}) => {
@@ -26,7 +25,7 @@ const Tabs = ({data}: {data: ITabData[]}) => {
       {
         data.map(tabData => (
             <Link to={tabData.path}>
-                <TabButton isCurrentTab={!!tabData.isCurrentTab}>{tabData.name}</TabButton>
+                <TabButton isCurrentTab={window.location.pathname === tabData.path}>{tabData.name}</TabButton>
             </Link>
         ))
       }
