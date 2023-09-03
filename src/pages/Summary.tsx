@@ -103,7 +103,7 @@ const Summary = () => {
               {Object.entries(totalList).map(([key, total]) => (
                 <tr key={key}>
                   <td>{key}</td>
-                  <td>{total}</td>
+                  <td>{total.toFixed(8)}</td>
                 </tr>
               ))}
             </tbody>
@@ -119,7 +119,7 @@ const Summary = () => {
               {Object.entries(exchangeList).map(([key, rate]) => (
                 <tr key={key}>
                   <td>{key}</td>
-                  <td>{rate as string}</td>
+                  <td>{(rate as number).toFixed(8)}</td>
                 </tr>
               ))}
             </tbody>
