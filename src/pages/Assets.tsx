@@ -2,21 +2,8 @@ import { useState } from "react";
 import { useCurrencyContext } from "../context/CurrencyContext";
 import styled from "styled-components";
 import CurrencyListPopup from "../components/CurrencyListPopup";
-import { Link } from "react-router-dom";
 import DeleteIcon from "../assets/delete.svg";
-
-const TabButton = styled.button<{ isCurrentTab?: boolean }>(
-  ({ isCurrentTab }) => ({
-    background: isCurrentTab ? "#ddd" : "white",
-    margin: 0,
-    borderRadius: 0,
-    outline: "none",
-  })
-);
-
-const TabsWrapper = styled.div(() => ({
-  marginBottom: "40px"
-}));
+import Tabs from "../components/Tabs";
 
 const Wrapper = styled.div(() => ({
   marginLeft: "50px",
@@ -93,22 +80,21 @@ const Assets = () => {
     });
   };
 
-  const selectedCurrencies = Object.keys(currencies.dict)
-  .filter((currency) => currencies.dict[currency].isSelected);
+  const selectedCurrencies = Object.keys(currencies.dict).filter(
+    (currency) => currencies.dict[currency].isSelected
+  );
 
   return (
     <Wrapper>
-      <TabsWrapper>
-        <Link to="/">
-          <TabButton isCurrentTab={true}>Assets</TabButton>
-        </Link>
-        <Link to="/summary">
-          <TabButton>Summary</TabButton>
-        </Link>
-      </TabsWrapper>
+      <Tabs
+        data={[
+          { name: "Assets", isCurrentTab: true, path: "/" },
+          { name: "Summary", path: "/summary" },
+        ]}
+      />
 
-      {selectedCurrencies.length > 0 ? selectedCurrencies
-        .map((currency) => (
+      {selectedCurrencies.length > 0 ? (
+        selectedCurrencies.map((currency) => (
           <CurrencyInputWrapper key={currency}>
             <input
               type="number"
@@ -122,7 +108,10 @@ const Assets = () => {
               onClick={() => handleDeleteInput(currency)}
             />
           </CurrencyInputWrapper>
-        )): <p>Start by adding your assets using the "Add +" button below.</p>}
+        ))
+      ) : (
+        <p>Start by adding your assets using the "Add +" button below.</p>
+      )}
 
       <button onClick={() => toggleListState(true)}>Add +</button>
 

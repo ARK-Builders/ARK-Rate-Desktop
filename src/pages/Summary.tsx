@@ -1,20 +1,7 @@
 import { useEffect, useState } from "react";
 import { useCurrencyContext } from "../context/CurrencyContext";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
-
-const TabButton = styled.button<{ isCurrentTab?: boolean }>(
-  ({ isCurrentTab }) => ({
-    background: isCurrentTab ? "#ddd" : "white",
-    margin: 0,
-    borderRadius: 0,
-    outline: "none",
-  })
-);
-
-const TabsWrapper = styled.div(() => ({
-  marginBottom: "40px",
-}));
+import Tabs from "../components/Tabs";
 
 const Wrapper = styled.div(() => ({
   marginLeft: "50px",
@@ -97,49 +84,50 @@ const Summary = () => {
 
   return (
     <Wrapper>
-      <TabsWrapper>
-        <Link to="/">
-          <TabButton>Assets</TabButton>
-        </Link>
-        <Link to="/summary">
-          <TabButton isCurrentTab={true}>Summary</TabButton>
-        </Link>
-      </TabsWrapper>
+      <Tabs
+        data={[
+          { name: "Assets", path: "/" },
+          { name: "Summary", isCurrentTab: true, path: "/summary" },
+        ]}
+      />
 
-      {Object.keys(totalList).length > 0 ? 
-      <TablesWrapper>
-        <Table>
-          <thead>
-            <tr>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(totalList).map(([key, total]) => (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{total}</td>
+      {Object.keys(totalList).length > 0 ? (
+        <TablesWrapper>
+          <Table>
+            <thead>
+              <tr>
+                <th>Total</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {Object.entries(totalList).map(([key, total]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
 
-        <Table>
-          <thead>
-            <tr>
-              <th>Exchange</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(exchangeList).map(([key, rate]) => (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{rate as string}</td>
+          <Table>
+            <thead>
+              <tr>
+                <th>Exchange</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-      </TablesWrapper>: <span>Nothing to show. Add your assets to get started.</span>}
+            </thead>
+            <tbody>
+              {Object.entries(exchangeList).map(([key, rate]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{rate as string}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </TablesWrapper>
+      ) : (
+        <span>Nothing to show. Add your assets to get started.</span>
+      )}
     </Wrapper>
   );
 };
