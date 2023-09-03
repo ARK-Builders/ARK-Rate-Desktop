@@ -75,6 +75,7 @@ const Assets = () => {
         [currencyCode]: {
           ...currencies.dict[currencyCode],
           isSelected: false,
+          existingAmount: 0,
         },
       },
     });
