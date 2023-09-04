@@ -30,7 +30,8 @@ jobs:
           sudo apt-get install -y libgtk-3-dev \
             webkit2gtk-4.0 libappindicator3-dev \
             librsvg2-dev patchelf libdbus-1-dev \
-            pkg-config
+            pkg-config \
+            libsoup-3.0
 
       - name: Fetch Node.js Dependencies
         run: yarn
