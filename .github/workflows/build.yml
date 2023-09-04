@@ -43,15 +43,3 @@ jobs:
         with:
           name: ark-rate-desktop.AppImage
           path: ./target/release/bundle/appimage/ARK-Rate-Desktop_*_amd64.AppImage
-
-      - name: Upload .deb build
-        uses: actions/upload-artifact@v3.1.0
-        with:
-          name: ark-rate-desktop.deb
-          path: ./target/release/bundle/deb/ARK-Rate-Desktop_*_amd64.deb
-
-      - name: Upload binary build
-        uses: actions/upload-artifact@v3.1.0
-        with:
-          name: ark-rate-desktop
-          path: ./target/release/ARK-Rate-Desktop
