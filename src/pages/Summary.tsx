@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useCurrencyContext } from "../context/CurrencyContext";
+import { ICurrency, useCurrencyContext } from "../context/CurrencyContext";
 import styled from "styled-components";
 import Tabs from "../components/Tabs";
+import { invoke } from "@tauri-apps/api/tauri";
 
 const Wrapper = styled.div(() => ({
   marginLeft: "50px",
@@ -50,36 +51,22 @@ const Summary = () => {
   const { currencies } = useCurrencyContext();
 
   useEffect(() => {
-    const selectedCurrencies = Object.keys(currencies.dict).filter(
-      (currencyCode) => currencies.dict[currencyCode].isSelected
-    );
-
-    const total: { [name: string]: number } = {};
-    const exchange: { [name: string]: number } = {};
-    for (let currency of selectedCurrencies) {
-      total[currency] = currencies.dict[currency].existingAmount || 0;
-    }
-    for (let currency of selectedCurrencies) {
-      for (let otherCurrency of selectedCurrencies) {
-        if (currency !== otherCurrency) {
-          total[currency] =
-            (total[currency] || 0) +
-            (currencies.dict[otherCurrency].existingAmount || 0) *
-              (currencies.dict[currency].conversionRate /
-                currencies.dict[otherCurrency].conversionRate);
-
-          exchange[`${currency}/${otherCurrency}`] =
-            currencies.dict[otherCurrency].conversionRate /
-            currencies.dict[currency].conversionRate;
-          exchange[`${otherCurrency}/${currency}`] =
-            currencies.dict[currency].conversionRate /
-            currencies.dict[otherCurrency].conversionRate;
+    const selectedCurrencies: ICurrency = {};
+    Object.keys(currencies.dict).map(
+      (currencyCode) => {
+        if (currencies.dict[currencyCode].isSelected) {
+          selectedCurrencies[currencyCode] = currencies.dict[currencyCode];
+          selectedCurrencies[currencyCode].existingAmount = selectedCurrencies[currencyCode].existingAmount || 0;
         }
-      }
-    }
+    });
 
-    setTotalList({ ...total });
-    setExchangeList({ ...exchange });
+    invoke<{[key: string]: number}>("calculate_currency_total", { selectedCurrencies }).then(total => {
+      setTotalList({...total});
+    }).catch(err => console.error("Problem with calculating total: ", err));
+    
+    invoke<{[key: string]: number}>("calculate_exchange_rates", { selectedCurrencies }).then(exchange => {
+      setExchangeList({ ...exchange });
+    }).catch(err => console.error("Problem with calculating exchange rates: ", err));
   }, []);
 
   return (

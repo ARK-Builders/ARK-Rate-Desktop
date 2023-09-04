@@ -13,7 +13,7 @@ export interface ICurrencyList {
   dict: ICurrency;
 }
 
-interface ICurrency {
+export interface ICurrency {
   [symbol: string]: {
     conversionRate: number;
     existingAmount?: number;
