@@ -1,5 +1,6 @@
 import {
   Dispatch,
+  ReactNode,
   SetStateAction,
   createContext,
   useContext,
@@ -38,7 +39,7 @@ const Context = createContext(initialState);
 
 export const useCurrencyContext = () => useContext(Context);
 
-export const CurrencyListProvider = ({ children }: any) => {
+export const CurrencyListProvider = ({ children }: { children: ReactNode }) => {
   const [currencies, setCurrencies] = useState<ICurrencyList>(
     initialState.currencies
   );
