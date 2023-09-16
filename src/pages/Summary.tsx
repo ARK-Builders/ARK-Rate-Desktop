@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ICurrency, useCurrencyContext } from "../context/CurrencyContext";
+import { ICurrencyMap, useCurrencyContext } from "../context/CurrencyContext";
 import styled from "styled-components";
 import Tabs from "../components/Tabs";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -51,11 +51,11 @@ const Summary = () => {
   const { currencies } = useCurrencyContext();
 
   useEffect(() => {
-    const selectedCurrencies: ICurrency = {};
-    Object.keys(currencies.dict).map(
+    const selectedCurrencies: ICurrencyMap = {};
+    Object.keys(currencies).map(
       (currencyCode) => {
-        if (currencies.dict[currencyCode].isSelected) {
-          selectedCurrencies[currencyCode] = currencies.dict[currencyCode];
+        if (currencies[currencyCode].isSelected) {
+          selectedCurrencies[currencyCode] = currencies[currencyCode];
           selectedCurrencies[currencyCode].existingAmount = selectedCurrencies[currencyCode].existingAmount || 0;
         }
     });

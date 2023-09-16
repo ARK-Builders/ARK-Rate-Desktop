@@ -56,7 +56,7 @@ async fn main() {
         Ok((fiat_rates, crypto_rates)) => {
             rates = fiat_rates;
             for crypto in crypto_rates {
-                rates.insert(crypto.symbol.to_uppercase(), crypto.current_price);
+                rates.insert(crypto.symbol.to_uppercase(), 1.0 / crypto.current_price);
             }
             let bytes = serde_json::to_string(&rates).unwrap_or(String::new());
             rates_file.write_all(bytes.as_bytes()).unwrap();

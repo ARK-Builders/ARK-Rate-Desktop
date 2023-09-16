@@ -57,12 +57,9 @@ const Assets = () => {
   const handleCurrencyInput = (value: string, currencyCode: string) => {
     setCurrencies({
       ...currencies,
-      dict: {
-        ...currencies.dict,
-        [currencyCode]: {
-          ...currencies.dict[currencyCode],
-          existingAmount: parseFloat(value),
-        },
+      [currencyCode]: {
+        ...currencies[currencyCode],
+        existingAmount: parseFloat(value),
       },
     });
   };
@@ -70,19 +67,16 @@ const Assets = () => {
   const handleDeleteInput = (currencyCode: string) => {
     setCurrencies({
       ...currencies,
-      dict: {
-        ...currencies.dict,
         [currencyCode]: {
-          ...currencies.dict[currencyCode],
+          ...currencies[currencyCode],
           isSelected: false,
           existingAmount: 0,
         },
-      },
     });
   };
 
-  const selectedCurrencies = Object.keys(currencies.dict).filter(
-    (currency) => currencies.dict[currency].isSelected
+  const selectedCurrencies = Object.keys(currencies).filter(
+    (currency) => currencies[currency].isSelected
   );
 
   return (
@@ -100,7 +94,7 @@ const Assets = () => {
             <input
               type="number"
               placeholder=" "
-              value={currencies.dict[currency].existingAmount}
+              value={currencies[currency].existingAmount}
               onChange={(e) => handleCurrencyInput(e.target.value, currency)}
             />
             <label>{currency}</label>
@@ -122,16 +116,13 @@ const Assets = () => {
           onSelectCurrency={(currency) => {
             setCurrencies({
               ...currencies,
-              dict: {
-                ...currencies.dict,
                 [currency]: {
-                  ...currencies.dict[currency],
+                  ...currencies[currency],
                   isSelected: true,
                 },
-              },
             });
           }}
-          currencies={Object.keys(currencies.dict)}
+          currencies={Object.keys(currencies)}
         />
       )}
     </Wrapper>

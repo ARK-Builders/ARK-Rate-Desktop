@@ -1,9 +1,11 @@
 use std::collections::HashMap as Map;
 
 #[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields, rename_all(serialize = "snake_case", deserialize = "camelCase"))]
 pub struct Coin {
     pub conversion_rate: f32,
     pub existing_amount: f32,
+    pub is_selected: bool,
 }
 
 pub struct Storage {
