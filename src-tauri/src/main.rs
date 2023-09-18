@@ -12,9 +12,13 @@ use std::{collections::HashMap as Map, fs::File};
 use tokio;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
+const FIAT_RATES_FETCH_URL: &str = "https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json";
+const CRYPTO_RATES_FETCH_URL: &str = "https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json";
+
+
 async fn fetch_rates() -> Result<(Map<String, f32>, Vec<CryptoRates>), reqwest::Error> {
     let fiat_rates = reqwest::get(
-        "https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json",
+        FIAT_RATES_FETCH_URL,
     )
     .await?
     .text()
@@ -27,7 +31,7 @@ async fn fetch_rates() -> Result<(Map<String, f32>, Vec<CryptoRates>), reqwest::
     let fiat_rates: FiatRates = serde_json::from_str(&fiat_rates).unwrap();
 
     let crypto_rates = reqwest::get(
-        "https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json",
+        CRYPTO_RATES_FETCH_URL,
     )
     .await?
     .text()
