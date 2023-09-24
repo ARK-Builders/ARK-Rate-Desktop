@@ -1,0 +1,43 @@
+name: Build
+
+env:
+  CARGO_TERM_COLOR: always
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3.2.0
+        with:
+          node-version: '16.x'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev \
+            webkit2gtk-4.0 javascriptcoregtk-4.1 libappindicator3-dev \
+            librsvg2-dev patchelf libdbus-1-dev \
+            pkg-config \
+
+      - name: Fetch Node.js Dependencies
+        run: yarn
+
+      - name: Build Release version
+        run: yarn tauri build
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: ark-rate-desktop.AppImage
+          path: ./src-tauri/target/release/bundle/appimage/ark-rate-desktop_*_amd64.AppImage
