@@ -43,7 +43,7 @@ pub async fn construct_rates() -> Result<Map<String, f32>, RateConstructErrors> 
     Ok(rates)
 }
 
-fn create_or_use_rates_file(file_name: &str) -> File {
+fn create_or_use_rates_file(file_name: &str, empty: bool) -> File {
     if let Some(proj_dirs) = ProjectDirs::from("com", "ark-builders", "ark-rate-desktop") {
         let path = proj_dirs.cache_dir();
         // must panic if failed to create/use the rates file
@@ -53,6 +53,7 @@ fn create_or_use_rates_file(file_name: &str) -> File {
         File::options()
             .read(true)
             .write(true)
+            .truncate(empty)
             .open(&path)
             .unwrap_or_else(|_| File::create(&path).unwrap())
     } else {
@@ -60,13 +61,14 @@ fn create_or_use_rates_file(file_name: &str) -> File {
     }
 }
 
-fn write_rates_to_file(rates: &Map<String, f32>, mut file: File) {
-    let bytes = serde_json::to_string(&rates).expect("Must not fail to serialize the json into a string");
-    let _ = file.set_len(0);
+fn write_rates_to_file(rates: &Map<String, f32>, mut file: &File) {
+    let bytes = serde_json::to_string(rates).expect("Must not fail to serialize the json into a string");
+    file.set_len(0).unwrap();
     file.write_all(bytes.as_bytes()).unwrap();
+    file.flush().unwrap();
 }
 
-fn read_rates_from_file(mut file: File) -> Result<Map<String, f32>, RateConstructErrors> {
+fn read_rates_from_file(mut file: &File) -> Result<Map<String, f32>, RateConstructErrors> {
     let mut unparsed_rates = String::new();
     file.read_to_string(&mut unparsed_rates)?;
     let parsed_rates = serde_json::from_str::<Map<String, f32>>(&unparsed_rates)?;
@@ -75,20 +77,85 @@ fn read_rates_from_file(mut file: File) -> Result<Map<String, f32>, RateConstruc
 
 pub async fn get_parsed_rates() -> Map<String, f32> {
     let parsed_rates: Map<String, f32>;
-    let rates_file = create_or_use_rates_file("rates");
     let result = construct_rates().await;
 
     match result {
         Ok(rates) => {
             parsed_rates = rates;
-            write_rates_to_file(&parsed_rates, rates_file);
+            let rates_file = create_or_use_rates_file("rates", true);
+            write_rates_to_file(&parsed_rates, &rates_file);
         }
-        Err(err) => {
-            dbg!(err, &rates_file);
-            parsed_rates = read_rates_from_file(rates_file)
+        Err(_) => {
+            let rates_file = create_or_use_rates_file("rates", false);
+            parsed_rates = read_rates_from_file(&rates_file)
                 .expect("Failed to retrieve rates which is required")
         }
     }
 
     parsed_rates
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Seek;
+
+    use super::*;
+
+    fn create_or_use_file(path: &str, empty: bool) -> File {
+        File::options()
+            .read(true)
+            .write(true)
+            .truncate(empty)
+            .open(path)
+            .unwrap_or_else(|_| File::create(path).unwrap())
+    }
+
+    fn add_string_to_file(data: &str, file: &mut File) {
+        file.set_len(0).unwrap();
+        file.write_all(data.as_bytes()).unwrap();
+        file.flush().unwrap();
+    }
+
+    #[test]
+    fn test_write_rates_to_file() {
+        let rates: Map<String, f32> = Map::from([(String::from("USD"), 1.0), (String::from("INR"), 0.01)]);
+        let mut file = create_or_use_file("write-rates", true);
+
+        write_rates_to_file(&rates, &file);
+
+        file.rewind().unwrap();
+        let mut file_data = String::new();
+        file.read_to_string(&mut file_data).unwrap();
+        assert_eq!(file_data.is_empty(), false);
+    }
+
+    #[test]
+    fn test_read_rates_from_file() {
+        let mut file = create_or_use_file("read-rates", true);
+        let rates_string = "{ \"USD\": 1.0, \"INR\": 0.01 }";
+        let rates = serde_json::from_str::<Map<String, f32>>(rates_string).unwrap();
+        add_string_to_file(rates_string, &mut file);
+        file.rewind().unwrap();
+
+        let parsed_rates = read_rates_from_file(&file).unwrap();
+        assert_eq!(rates, parsed_rates);
+    }
+
+    #[test]
+    fn test_parse_fiat_rates() {
+        let unparsed_rates = "{ \"rates\": {\"USD\": 1.0, \"INR\": 0.01} }";
+        let parsed_rates: Map<String, f32> = Map::from([(String::from("USD"), 1.0), (String::from("INR"), 0.01)]);
+
+        let result = parse_fiat_rates(String::from(unparsed_rates)).unwrap();
+        assert_eq!(parsed_rates, result);
+    }
+
+    #[test]
+    fn test_parse_crypto_rates() {
+        let unparsed_rates = "[ { \"symbol\": \"USD\", \"current_price\": 1 }, {\"symbol\": \"INR\", \"current_price\": 100} ]";
+        let parsed_rates: Map<String, f32> = Map::from([(String::from("USD"), 1.0), (String::from("INR"), 0.01)]);
+
+        let result = parse_crypto_rates(String::from(unparsed_rates)).unwrap();
+        assert_eq!(parsed_rates, result);    
+    }
 }
