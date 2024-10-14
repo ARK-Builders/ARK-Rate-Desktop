@@ -10,14 +10,14 @@
   } from "lucide-svelte";
   import "../app.css";
 
-  let isNavigationDrawerOpen = false;
+  let isNavigationDrawerOpen = true;
   const toggleNavigationDrawer = () =>
     (isNavigationDrawerOpen = !isNavigationDrawerOpen);
 </script>
 
 <div class="flex box-border min-w-full min-h-screen">
   <aside
-    class="h-full transition-all {isNavigationDrawerOpen ? ' w-64' : ' w-16'}"
+    class="transition-all border-r {isNavigationDrawerOpen ? ' w-64' : ' w-16'}"
   >
     {#if isNavigationDrawerOpen}
       <div class="flex flex-col gap-4 py-10 px-4">
@@ -101,7 +101,7 @@
       </div>
     {/if}
   </aside>
-  <div class="flex-grow bg-yellow-300">
+  <div class="flex-grow">
     <slot />
   </div>
 </div>
