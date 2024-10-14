@@ -27,7 +27,6 @@
 		"autoprefixer": "^10.4.20",
 		"flowbite": "^2.5.2",
 		"flowbite-svelte": "^0.46.23",
-		"globals": "^15.11.0",
 		"prettier": "3.3.3",
 		"prettier-plugin-svelte": "^3.2.7",
 		"prettier-plugin-tailwindcss": "^0.6.8",
