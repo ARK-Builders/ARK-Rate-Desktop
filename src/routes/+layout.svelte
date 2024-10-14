@@ -7,7 +7,7 @@
 	const toggleNavigationDrawer = () => (isNavigationDrawerOpen = !isNavigationDrawerOpen);
 </script>
 
-<div class="box-border flex min-h-screen min-w-full">
+<div class="flex min-h-screen min-w-full">
 	<aside class="border-r transition-all {isNavigationDrawerOpen ? ' w-64' : ' w-16'}">
 		{#if isNavigationDrawerOpen}
 			<div class="flex flex-col gap-4 px-4 py-10">
