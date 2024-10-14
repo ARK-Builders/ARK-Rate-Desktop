@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { invoke } from '@tauri-apps/api/core';
+  import { invoke } from '@tauri-apps/api/core';
 
-	let name = '';
-	let greetMsg = '';
+  let name = '';
+  let greetMsg = '';
 
-	async function greet() {
-		greetMsg = await invoke('greet', { name });
-	}
+  async function greet() {
+    greetMsg = await invoke('greet', { name });
+  }
 </script>
 
 <div>
-	<p>Some page here</p>
+  <p>Some page here</p>
 </div>
