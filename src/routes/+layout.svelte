@@ -14,8 +14,8 @@
         <div class="flex items-center justify-between pl-4">
           <img
             class="size-14"
-            src="/md-logo.png"
             alt="Ark Rate Logo"
+            src="/images/ark/md-logo.png"
           />
           <Button
             outline
@@ -80,8 +80,8 @@
       <div class="flex flex-col items-center gap-4 px-4 py-10">
         <img
           class="size-8"
-          src="/sm-logo.png"
           alt="Ark Rate Logo"
+          src="/images/ark/sm-logo.png"
         />
         <Button
           outline
