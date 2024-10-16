@@ -1,10 +1,13 @@
 <script lang="ts">
+  import { page } from '$app/stores';
   import { Button, Input } from 'flowbite-svelte';
   import { Bell, ChartNoAxesColumn, Coins, PanelLeft, Search, Settings } from 'lucide-svelte';
   import '../app.css';
 
   let isNavigationDrawerOpen = true;
+
   const toggleNavigationDrawer = () => (isNavigationDrawerOpen = !isNavigationDrawerOpen);
+  console.log($page.url);
 </script>
 
 <div class="flex min-h-screen min-w-full">
@@ -39,9 +42,9 @@
         <div class="flex flex-col gap-3">
           <Button
             outline
-            checked
             size="sm"
             color="primary"
+            checked={$page.url.pathname === '/'}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >
             <Coins class="size-5" />
@@ -51,6 +54,7 @@
             outline
             size="sm"
             color="primary"
+            checked={$page.url.pathname.startsWith('/portfolios')}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >
             <ChartNoAxesColumn class="size-5" />
@@ -60,6 +64,7 @@
             outline
             size="sm"
             color="primary"
+            checked={$page.url.pathname.startsWith('/alerts')}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >
             <Bell class="size-5" />
@@ -69,6 +74,7 @@
             outline
             size="sm"
             color="primary"
+            checked={$page.url.pathname.startsWith('/settings')}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >
             <Settings class="size-5" />
@@ -99,11 +105,11 @@
           <Search class="size-4" />
         </Button>
         <Button
-          checked
           outline
           size="xs"
           color="primary"
           class="shadow-none"
+          checked={$page.url.pathname === '/'}
         >
           <Coins class="size-4" />
         </Button>
@@ -112,6 +118,7 @@
           size="xs"
           color="primary"
           class="shadow-none"
+          checked={$page.url.pathname.startsWith('/portfolios')}
         >
           <ChartNoAxesColumn class="size-4" />
         </Button>
@@ -120,6 +127,7 @@
           size="xs"
           color="primary"
           class="shadow-none"
+          checked={$page.url.pathname.startsWith('/alerts')}
         >
           <Bell class="size-4" />
         </Button>
@@ -128,6 +136,7 @@
           size="xs"
           color="primary"
           class="shadow-none"
+          checked={$page.url.pathname.startsWith('/settings')}
         >
           <Settings class="size-4" />
         </Button>
