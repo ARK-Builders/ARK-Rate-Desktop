@@ -3,4 +3,5 @@ import type { Pair } from './Pair';
 
 export interface PairGroup extends Entity {
   pairs: Pair[];
+  isPinned: boolean;
 }
