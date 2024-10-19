@@ -1,7 +1,9 @@
 use std::hash::Hash;
 
-#[derive(Clone, Debug)]
-pub struct Pair {
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct FileSystemPair {
     pub id: String,
     pub value: f64,
     pub base: String,
@@ -10,7 +12,7 @@ pub struct Pair {
     pub updated_at: String,
 }
 
-impl PartialEq for Pair {
+impl PartialEq for FileSystemPair {
     fn eq(&self, other: &Self) -> bool {
         return self.id == other.id
             && self.base == other.base
@@ -21,7 +23,7 @@ impl PartialEq for Pair {
     }
 }
 
-impl Hash for Pair {
+impl Hash for FileSystemPair {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         return self.id.hash(state);
     }

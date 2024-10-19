@@ -28,3 +28,5 @@ chrono = "0.4.38"
 uuid = { version = "0.8", features = ["v4"] }
 reqwest = "0.11"
 tokio = { version = "1", features = ["full"] }
+directories = "5.0.1"
+tempfile = "3"
