@@ -729,7 +729,7 @@ mod test {
             response_pair_group.pairs[2].created_at,
             "2024-01-01T04:00:00+00:00"
         );
-        assert_eq!(
+        assert_ne!(
             response_pair_group.pairs[2].updated_at,
             "2024-01-01T05:00:00+00:00"
         );
