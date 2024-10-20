@@ -9,7 +9,9 @@ use serde::{Deserialize, Serialize};
 use crate::{
     entities::{pair::Pair, pair_group::PairGroup},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
-    interactors::view_pair_groups::ViewPairGroupsDataAccess,
+    interactors::{
+        save_pair_group::SavePairGroupDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
+    },
     Error,
 };
 
@@ -168,6 +170,20 @@ where
             message: e.to_string(),
         })?;
     return Ok(());
+}
+
+impl SavePairGroupDataAccess for FileSystemDataAccess {
+    async fn save_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
+        let dir = ensure_dir(&self.root, PAIR_GROUPS_DIR_NAME)?;
+        let path = dir.join(&pair_group.id);
+        if path.exists() {
+            return Err(Error {
+                message: String::from("Pair group to save already exists!"),
+            });
+        }
+        write_pair_group(&self.root, pair_group)?;
+        return Ok(());
+    }
 }
 
 #[cfg(test)]

@@ -111,6 +111,7 @@ where
 }
 
 fn refresh_pair_group(fresh_pairs: &Vec<Pair>, pair_group: &PairGroup) -> PairGroup {
+    // TODO: update this logic for pairs not found in the fresh pairs
     let mut fresh_pair_group = PairGroup {
         id: pair_group.id.clone(),
         pairs: vec![],
