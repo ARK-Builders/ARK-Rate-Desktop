@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, read_dir, DirEntry, File},
+    fs::{create_dir_all, read_dir, remove_file, DirEntry, File},
     io::{Read, Write},
     path::{Path, PathBuf},
 };
@@ -10,8 +10,8 @@ use crate::{
     entities::{pair::Pair, pair_group::PairGroup},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
-        save_pair_group::SavePairGroupDataAccess, update_pair_group::UpdatePairGroupDataAccess,
-        view_pair_groups::ViewPairGroupsDataAccess,
+        delete_pair_group::DeletePairGroupDataAccess, save_pair_group::SavePairGroupDataAccess,
+        update_pair_group::UpdatePairGroupDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
     },
     Error,
 };
@@ -186,16 +186,23 @@ where
 
 impl SavePairGroupDataAccess for FileSystemDataAccess {
     async fn save_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
-        let dir = ensure_dir(&self.root, PAIR_GROUPS_DIR_NAME)?;
-        let path = dir.join(&pair_group.id);
-        if path.exists() {
-            return Err(Error {
-                message: String::from("Pair group to save already exists!"),
-            });
-        }
-        write_pair_group(&self.root, pair_group)?;
-        return Ok(());
+        return save_pair_group(&self, pair_group).await;
     }
+}
+
+async fn save_pair_group(
+    data_access: &FileSystemDataAccess,
+    pair_group: &PairGroup,
+) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+    let path = dir.join(&pair_group.id);
+    if path.exists() {
+        return Err(Error {
+            message: String::from("Pair group to save already exists!"),
+        });
+    }
+    write_pair_group(&data_access.root, pair_group)?;
+    return Ok(());
 }
 
 impl UpdatePairGroupDataAccess for FileSystemDataAccess {
@@ -204,8 +211,56 @@ impl UpdatePairGroupDataAccess for FileSystemDataAccess {
     }
 }
 
+impl DeletePairGroupDataAccess for FileSystemDataAccess {
+    async fn delete_pair_group(&mut self, id: &str) -> Result<(), Error> {
+        return delete_pair_group(&self, id).await;
+    }
+}
+
+async fn delete_pair_group(data_access: &FileSystemDataAccess, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+    let path = dir.join(id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Pair group to delete does not exist!"),
+        });
+    }
+    remove_pair_group(&data_access.root, id)?;
+    return Ok(());
+}
+
+fn remove_pair_group(root: &Path, id: &str) -> Result<(), Error> {
+    let pair_group = read_pair_group(root, id)?;
+    for pair in &pair_group.pairs {
+        remove_pair(root, &pair.id)?;
+    }
+    let dir = ensure_dir(root, PAIR_GROUPS_DIR_NAME)?;
+    let path = dir.join(&pair_group.id);
+    remove_object_file(&path)?;
+    return Ok(());
+}
+
+fn remove_pair(root: &Path, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(root, PAIRS_DIR_NAME)?;
+    let path = dir.join(id);
+    remove_object_file(&path)?;
+    return Ok(());
+}
+
+fn remove_object_file(path: &Path) -> Result<(), Error> {
+    remove_file(path).map_err(|e| Error {
+        message: e.to_string(),
+    })?;
+    return Ok(());
+}
+
 #[cfg(test)]
 mod tests {
+    /*
+       TODO:
+           - Tests for save pair group
+           - Tests for delete pair group
+    */
     use crate::entities::pair::Pair;
 
     use super::*;

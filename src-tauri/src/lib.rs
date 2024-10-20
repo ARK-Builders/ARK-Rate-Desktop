@@ -4,6 +4,7 @@ use implementations::{
     utilities::coin_market::github_coin_market::GithubCoinMarket,
 };
 use interactors::{
+    delete_pair_group::{DeletePairGroup, DeletePairGroupRequest},
     interactor::Interactor,
     save_pair_group::{SavePairGroup, SavePairGroupRequest},
     update_pair_group::{UpdatePairGroup, UpdatePairGroupRequest},
@@ -19,6 +20,12 @@ mod utilities;
 pub struct Error {
     pub message: String,
 }
+
+/*
+    TODO (NOT SURE):
+        - Try to reuse the 'coin_market' instance for all commands
+        - Try to reuse the 'data_access' instance for all commands
+*/
 
 #[tauri::command]
 async fn view_pair_groups() -> String {
@@ -74,6 +81,16 @@ async fn update_pair_group(request: String) -> String {
     return result_json;
 }
 
+#[tauri::command]
+async fn delete_pair_group(request: String) -> String {
+    let data_access = create_fs_data_access();
+    let mut interactor = DeletePairGroup { data_access };
+    let parsed_request = serde_json::from_str::<DeletePairGroupRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await.unwrap();
+    let result_json = serde_json::to_string(&result).unwrap();
+    return result_json;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -81,7 +98,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             view_pair_groups,
             save_pair_group,
-            update_pair_group
+            update_pair_group,
+            delete_pair_group
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

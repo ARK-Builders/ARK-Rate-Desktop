@@ -1,3 +1,4 @@
+pub mod delete_pair_group;
 pub mod interactor;
 pub mod save_pair_group;
 pub mod update_pair_group;
