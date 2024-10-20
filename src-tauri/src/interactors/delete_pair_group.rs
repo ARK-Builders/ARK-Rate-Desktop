@@ -34,7 +34,7 @@ where
 {
     async fn perform(&mut self, request: DeletePairGroupRequest) -> Result<(), Error> {
         /*
-           TODO (NOT SURE):
+           TODO:
                - Make sure the pair group exists.
         */
         self.data_access
