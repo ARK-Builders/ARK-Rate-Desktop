@@ -1,11 +1,12 @@
 use directories::ProjectDirs;
 use implementations::{
-    data_access::{self, file_system::file_system_data_access::FileSystemDataAccess},
+    data_access::file_system::file_system_data_access::FileSystemDataAccess,
     utilities::coin_market::github_coin_market::GithubCoinMarket,
 };
 use interactors::{
     interactor::Interactor,
     save_pair_group::{SavePairGroup, SavePairGroupRequest},
+    update_pair_group::{UpdatePairGroup, UpdatePairGroupRequest},
     view_pair_groups::ViewPairGroups,
 };
 
@@ -63,11 +64,25 @@ async fn save_pair_group(request: String) -> String {
     return result_json;
 }
 
+#[tauri::command]
+async fn update_pair_group(request: String) -> String {
+    let data_access = create_fs_data_access();
+    let mut interactor = UpdatePairGroup { data_access };
+    let parsed_request = serde_json::from_str::<UpdatePairGroupRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await.unwrap();
+    let result_json = serde_json::to_string(&result).unwrap();
+    return result_json;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![view_pair_groups, save_pair_group])
+        .invoke_handler(tauri::generate_handler![
+            view_pair_groups,
+            save_pair_group,
+            update_pair_group
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -10,7 +10,8 @@ use crate::{
     entities::{pair::Pair, pair_group::PairGroup},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
-        save_pair_group::SavePairGroupDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
+        save_pair_group::SavePairGroupDataAccess, update_pair_group::UpdatePairGroupDataAccess,
+        view_pair_groups::ViewPairGroupsDataAccess,
     },
     Error,
 };
@@ -26,29 +27,25 @@ pub struct FileSystemDataAccess {
 
 impl ViewPairGroupsDataAccess for FileSystemDataAccess {
     async fn fetch_pair_groups(&mut self) -> Result<Vec<PairGroup>, Error> {
-        let mut pair_groups: Vec<PairGroup> = vec![];
-        let entries = get_dir_entries(&self.root, PAIR_GROUPS_DIR_NAME)?;
-        for entry in entries {
-            let file_name = entry.file_name();
-            if let Some(id) = file_name.to_str() {
-                let pair_group = read_pair_group(&self.root, id)?;
-                pair_groups.push(pair_group);
-            }
-        }
-        return Ok(pair_groups);
+        return fetch_pair_groups(&self).await;
     }
 
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
-        let dir = ensure_dir(&self.root, PAIR_GROUPS_DIR_NAME)?;
-        let path = dir.join(&pair_group.id);
-        if !path.exists() {
-            return Err(Error {
-                message: String::from("Pair group to update does not exist!"),
-            });
-        }
-        write_pair_group(&self.root, pair_group)?;
-        return Ok(());
+        return update_pair_group(&self, pair_group).await;
     }
+}
+
+async fn fetch_pair_groups(data_access: &FileSystemDataAccess) -> Result<Vec<PairGroup>, Error> {
+    let mut pair_groups: Vec<PairGroup> = vec![];
+    let entries = get_dir_entries(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(id) = file_name.to_str() {
+            let pair_group = read_pair_group(&data_access.root, id)?;
+            pair_groups.push(pair_group);
+        }
+    }
+    return Ok(pair_groups);
 }
 
 fn get_dir_entries(root: &Path, name: &str) -> Result<Vec<DirEntry>, Error> {
@@ -121,6 +118,21 @@ fn read_pair(root: &Path, id: &str) -> Result<Pair, Error> {
     });
 }
 
+async fn update_pair_group(
+    data_access: &FileSystemDataAccess,
+    pair_group: &PairGroup,
+) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+    let path = dir.join(&pair_group.id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Pair group to update does not exist!"),
+        });
+    }
+    write_pair_group(&data_access.root, pair_group)?;
+    return Ok(());
+}
+
 fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
     for pair in &pair_group.pairs {
         write_pair(root, pair)?;
@@ -183,6 +195,12 @@ impl SavePairGroupDataAccess for FileSystemDataAccess {
         }
         write_pair_group(&self.root, pair_group)?;
         return Ok(());
+    }
+}
+
+impl UpdatePairGroupDataAccess for FileSystemDataAccess {
+    async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
+        return update_pair_group(&self, pair_group).await;
     }
 }
 
@@ -253,11 +271,11 @@ mod tests {
             write_pair_group(&root, example_pair_group).unwrap();
         }
 
-        let mut data_access: FileSystemDataAccess = FileSystemDataAccess {
+        let data_access: FileSystemDataAccess = FileSystemDataAccess {
             root: root.to_path_buf(),
         };
+        let pair_groups = fetch_pair_groups(&data_access).await.unwrap();
 
-        let pair_groups = data_access.fetch_pair_groups().await.unwrap();
         assert_eq!(pair_groups.len(), 2);
         assert_eq!(pair_groups[0], example_pair_groups[0]);
         assert_eq!(pair_groups[1], example_pair_groups[1]);
@@ -324,12 +342,10 @@ mod tests {
             updated_at: Utc::now().to_rfc3339(),
         };
 
-        let mut data_access: FileSystemDataAccess = FileSystemDataAccess {
+        let data_access: FileSystemDataAccess = FileSystemDataAccess {
             root: root.to_path_buf(),
         };
-
-        data_access
-            .update_pair_group(&updated_pair_group)
+        update_pair_group(&data_access, &updated_pair_group)
             .await
             .unwrap();
 
