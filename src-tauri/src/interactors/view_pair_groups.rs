@@ -72,7 +72,7 @@ where
 {
     async fn perform(&mut self, _request: ()) -> Result<ViewPairGroupsResponse, Error> {
         let mut pair_groups: Vec<PairGroup> = vec![];
-        let fresh_usd_pairs: Vec<Pair> = self.coin_market.retrieve_pairs_by_base("USD").await?;
+        let fresh_usd_pairs: Vec<Pair> = self.coin_market.retrieve_usd_pairs().await?;
         let stored_pair_groups: Vec<PairGroup> = self.data_access.fetch_pair_groups().await?;
         for stored_pair_group in &stored_pair_groups {
             if stored_pair_group.is_pinned {
@@ -242,7 +242,7 @@ mod test {
     }
 
     impl CoinMarket for CoinMarketMock {
-        async fn retrieve_pairs_by_base(&mut self, _base: &str) -> Result<Vec<Pair>, Error> {
+        async fn retrieve_usd_pairs(&mut self) -> Result<Vec<Pair>, Error> {
             return self.retrieve_pairs_by_base_result.clone();
         }
     }

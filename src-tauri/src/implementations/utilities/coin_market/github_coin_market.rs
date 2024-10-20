@@ -23,46 +23,18 @@ struct CryptoObject {
 }
 
 impl CoinMarket for GithubCoinMarket {
-    async fn retrieve_pairs_by_base(&mut self, base: &str) -> Result<Vec<Pair>, Error> {
-        let mut base_pairs: Vec<Pair> = vec![];
-        let usd_fiat_pairs: Vec<Pair> =
-            retrieve_updated_fiat_pairs_by_usd(&self.fiat_rates_url).await?;
-        let usd_crypto_pairs: Vec<Pair> =
-            retrieve_updated_crypto_pairs_by_usd(&self.crypto_rates_url).await?;
-        let usd_pairs: Vec<Pair> = usd_fiat_pairs
+    async fn retrieve_usd_pairs(&mut self) -> Result<Vec<Pair>, Error> {
+        let usd_fiat_pairs: Vec<Pair> = retrieve_usd_fiat_pairs(&self.fiat_rates_url).await?;
+        let usd_crypto_pairs: Vec<Pair> = retrieve_usd_crypto_pairs(&self.crypto_rates_url).await?;
+        return Ok(usd_fiat_pairs
             .iter()
             .chain(&usd_crypto_pairs)
             .cloned()
-            .collect();
-        if base == "USD" {
-            return Ok(usd_pairs);
-        }
-        let maybe_usd_base_pair = find_usd_base_pair(&usd_pairs, &base);
-        if maybe_usd_base_pair.is_none() {
-            return Err(Error {
-                message: String::from("Could not find the USD pair for the given base!"),
-            });
-        }
-        let usd_base_pair: Pair = maybe_usd_base_pair.unwrap();
-        let base_usd_value = 1.0 / usd_base_pair.value;
-        for pair in &usd_pairs {
-            if pair.comparison != base {
-                let base_pair = Pair {
-                    id: Uuid::new_v4().to_string(),
-                    value: pair.value * base_usd_value,
-                    base: base.to_string(),
-                    comparison: pair.comparison.clone(),
-                    created_at: Utc::now().to_rfc3339(),
-                    updated_at: Utc::now().to_rfc3339(),
-                };
-                base_pairs.push(base_pair)
-            }
-        }
-        return Ok(base_pairs);
+            .collect());
     }
 }
 
-async fn retrieve_updated_fiat_pairs_by_usd(url: &str) -> Result<Vec<Pair>, Error> {
+async fn retrieve_usd_fiat_pairs(url: &str) -> Result<Vec<Pair>, Error> {
     match reqwest::get(url).await {
         Ok(resp) => match resp.text().await {
             Ok(text) => {
@@ -71,9 +43,6 @@ async fn retrieve_updated_fiat_pairs_by_usd(url: &str) -> Result<Vec<Pair>, Erro
                 for rate in &data.rates {
                     let code = rate.0;
                     let value = rate.1;
-                    if code == "USD" {
-                        continue;
-                    }
                     pairs.push(Pair {
                         id: Uuid::new_v4().to_string(),
                         value: value.clone(),
@@ -101,7 +70,7 @@ async fn retrieve_updated_fiat_pairs_by_usd(url: &str) -> Result<Vec<Pair>, Erro
     }
 }
 
-async fn retrieve_updated_crypto_pairs_by_usd(url: &str) -> Result<Vec<Pair>, Error> {
+async fn retrieve_usd_crypto_pairs(url: &str) -> Result<Vec<Pair>, Error> {
     match reqwest::get(url).await {
         Ok(resp) => match resp.text().await {
             Ok(text) => {
@@ -137,15 +106,6 @@ async fn retrieve_updated_crypto_pairs_by_usd(url: &str) -> Result<Vec<Pair>, Er
     }
 }
 
-fn find_usd_base_pair(usd_pairs: &Vec<Pair>, comparison: &str) -> Option<Pair> {
-    for pair in usd_pairs {
-        if pair.comparison == comparison {
-            return Some(pair.clone());
-        }
-    }
-    return None;
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -157,7 +117,7 @@ mod tests {
             fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
             crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
         };
-        let pairs_result = coin_market.retrieve_pairs_by_base("USD").await;
+        let pairs_result = coin_market.retrieve_usd_pairs().await;
         assert!(pairs_result.is_ok())
     }
 }
