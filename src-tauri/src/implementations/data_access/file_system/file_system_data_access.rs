@@ -258,8 +258,8 @@ fn remove_object_file(path: &Path) -> Result<(), Error> {
 mod tests {
     /*
        TODO:
-           - Tests for save pair group
-           - Tests for delete pair group
+           - Unit tests for save pair group
+           - Unit tests for delete pair group
     */
     use crate::entities::pair::Pair;
 

@@ -75,7 +75,7 @@ where
         let stored_pair_groups: Vec<PairGroup> = self.data_access.fetch_pair_groups().await?;
         for stored_pair_group in &stored_pair_groups {
             if stored_pair_group.is_pinned {
-                let fresh_pair_group = refresh_pair_group(&fresh_pairs, stored_pair_group);
+                let fresh_pair_group = refresh_pair_group(&fresh_pairs, stored_pair_group)?;
                 self.data_access
                     .update_pair_group(&fresh_pair_group)
                     .await?;
@@ -110,8 +110,14 @@ where
     }
 }
 
-fn refresh_pair_group(fresh_pairs: &Vec<Pair>, pair_group: &PairGroup) -> PairGroup {
-    // TODO: update this logic for pairs not found in the fresh pairs
+fn refresh_pair_group(
+    fresh_usd_pairs: &Vec<Pair>,
+    pair_group: &PairGroup,
+) -> Result<PairGroup, Error> {
+    /*
+        TODO:
+            - got to make sure that the new pair group has the same size as the old one
+    */
     let mut fresh_pair_group = PairGroup {
         id: pair_group.id.clone(),
         pairs: vec![],
@@ -120,23 +126,47 @@ fn refresh_pair_group(fresh_pairs: &Vec<Pair>, pair_group: &PairGroup) -> PairGr
         updated_at: Utc::now().to_rfc3339(),
     };
     for pair in &pair_group.pairs {
-        for fresh_pair in fresh_pairs {
-            let has_same_base: bool = pair.base == fresh_pair.base;
-            let has_same_comparison: bool = pair.comparison == fresh_pair.comparison;
+        for fresh_usd_pair in fresh_usd_pairs {
+            let has_same_base = pair.base == fresh_usd_pair.base;
+            let has_same_comparison = pair.comparison == fresh_usd_pair.comparison;
+            let has_base_eq_comparison = pair.base == fresh_usd_pair.comparison;
+            let has_comparison_eq_base = pair.comparison == fresh_usd_pair.base;
             if has_same_base && has_same_comparison {
                 fresh_pair_group.pairs.push(Pair {
                     id: pair.id.clone(),
                     base: pair.base.clone(),
-                    value: fresh_pair.value.clone(),
+                    value: fresh_usd_pair.value.clone(),
                     comparison: pair.comparison.clone(),
                     created_at: pair.created_at.clone(),
-                    updated_at: fresh_pair.updated_at.clone(),
+                    updated_at: fresh_usd_pair.updated_at.clone(),
+                });
+                break;
+            } else if has_base_eq_comparison && has_comparison_eq_base {
+                let inverted_value = 1.0 / fresh_usd_pair.value;
+                fresh_pair_group.pairs.push(Pair {
+                    id: pair.id.clone(),
+                    value: inverted_value,
+                    base: pair.base.clone(),
+                    comparison: pair.comparison.clone(),
+                    created_at: pair.created_at.clone(),
+                    updated_at: fresh_usd_pair.updated_at.clone(),
+                });
+                break;
+            } else if has_same_comparison {
+                let equivalent_value = pair.value * fresh_usd_pair.value;
+                fresh_pair_group.pairs.push(Pair {
+                    id: pair.id.clone(),
+                    value: equivalent_value,
+                    base: pair.base.clone(),
+                    comparison: pair.comparison.clone(),
+                    created_at: pair.created_at.clone(),
+                    updated_at: fresh_usd_pair.updated_at.clone(),
                 });
                 break;
             }
         }
     }
-    return fresh_pair_group;
+    return Ok(fresh_pair_group);
 }
 
 #[cfg(test)]
