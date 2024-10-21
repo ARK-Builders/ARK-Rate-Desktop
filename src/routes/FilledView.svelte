@@ -5,8 +5,7 @@
   import PairGroupView from './PairGroupView.svelte';
 
   export let pinnedPairGroups: PairGroup[];
-  export let calculatedPairGroups: PairGroup[];
-  export let frequentPairGroups: PairGroup[];
+  export let unpinnedPairGroups: PairGroup[];
 
   export let onCalculateClick: () => void;
 </script>
@@ -43,23 +42,12 @@
       {/each}
     </div>
   {/if}
-  {#if calculatedPairGroups.length > 0}
+  {#if unpinnedPairGroups.length > 0}
     <div class="flex flex-col">
       <div class="flex items-center justify-between gap-12 border-b py-3 text-gray-500">
         <p class="font-bold">Calculated pairs</p>
       </div>
-      {#each calculatedPairGroups as pairGroup}
-        <PairGroupView />
-      {/each}
-    </div>
-  {/if}
-  {#if frequentPairGroups.length > 0}
-    <div class="flex flex-col">
-      <div class="flex items-center justify-between gap-12 border-b py-3 text-gray-500">
-        <p class="font-bold">Frequent pairs</p>
-        <Pin class="size-5 rotate-45 fill-gray-500" />
-      </div>
-      {#each frequentPairGroups as pairGroup}
+      {#each unpinnedPairGroups as pairGroup}
         <PairGroupView />
       {/each}
     </div>

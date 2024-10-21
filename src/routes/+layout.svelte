@@ -3,12 +3,23 @@
   import { Button, Input } from 'flowbite-svelte';
   import { Bell, ChartNoAxesColumn, Coins, PanelLeft, Search, Settings } from 'lucide-svelte';
   import '../app.css';
+  import { toasts } from './layoutStore';
+  import Toast from './Toast.svelte';
 
   let isNavigationDrawerOpen = true;
 
   const toggleNavigationDrawer = () => (isNavigationDrawerOpen = !isNavigationDrawerOpen);
-  console.log($page.url);
 </script>
+
+<div class="center pointer-events-none fixed z-50 box-border flex w-screen flex-col items-center justify-center gap-4">
+  {#each $toasts as toast}
+    <Toast
+      id={toast.id}
+      type={toast.type}
+      message={toast.message}
+    />
+  {/each}
+</div>
 
 <div class="flex min-h-screen min-w-full">
   <aside class="border-r transition-all {isNavigationDrawerOpen ? 'w-64 min-w-48' : 'w-16'}">
