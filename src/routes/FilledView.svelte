@@ -38,7 +38,7 @@
         <Pin class="size-5 rotate-45 fill-gray-500" />
       </div>
       {#each pinnedPairGroups as pairGroup}
-        <PairGroupView />
+        <PairGroupView {pairGroup} />
       {/each}
     </div>
   {/if}
@@ -48,7 +48,7 @@
         <p class="font-bold">Calculated pairs</p>
       </div>
       {#each unpinnedPairGroups as pairGroup}
-        <PairGroupView />
+        <PairGroupView {pairGroup} />
       {/each}
     </div>
   {/if}

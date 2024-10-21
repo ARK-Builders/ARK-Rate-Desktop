@@ -5,6 +5,7 @@
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { invoke } from '@tauri-apps/api/core';
   import { Spinner } from 'flowbite-svelte';
+  import { DateTime } from 'luxon';
   import { onMount } from 'svelte';
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
@@ -31,8 +32,8 @@
             base: pair.base,
             value: pair.value,
             comparison: pair.comparison,
-            createdAt: new Date(pair.created_at),
-            updatedAt: new Date(pair.updated_at),
+            createdAt: DateTime.fromISO(pair['created_at']).toJSDate(),
+            updatedAt: DateTime.fromISO(pair['updated_at']).toJSDate(),
           });
         }
         for (const pairGroup of response['pair_groups']) {
@@ -42,8 +43,8 @@
               isPinned: true,
               multiplier: pairGroup['multiplier'],
               pairs: createPairsFromResponse(pairGroup['pairs']),
-              createdAt: new Date(pairGroup['created_at']),
-              updatedAt: new Date(pairGroup['updated_at']),
+              createdAt: DateTime.fromISO(pairGroup['created_at']).toJSDate(),
+              updatedAt: DateTime.fromISO(pairGroup['updated_at']).toJSDate(),
             });
           } else {
             unpinnedPairGroups.push({
@@ -51,8 +52,8 @@
               isPinned: false,
               multiplier: pairGroup['multiplier'],
               pairs: createPairsFromResponse(pairGroup['pairs']),
-              createdAt: new Date(pairGroup['created_at']),
-              updatedAt: new Date(pairGroup['updated_at']),
+              createdAt: DateTime.fromISO(pairGroup['created_at']).toJSDate(),
+              updatedAt: DateTime.fromISO(pairGroup['updated_at']).toJSDate(),
             });
           }
         }
@@ -98,7 +99,6 @@
             message: 'Pair saved successfully!',
           },
         ];
-        loadPairGroups();
       })
       .catch(() => {
         $toasts = [
@@ -111,7 +111,7 @@
         ];
       })
       .finally(() => {
-        isLoading = false;
+        loadPairGroups();
         isSavePairGroupOpen = false;
       });
   };
