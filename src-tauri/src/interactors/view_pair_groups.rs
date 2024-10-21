@@ -86,6 +86,10 @@ where
                 pair_groups.push(stored_pair_group.clone())
             }
         }
+        pair_groups.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+        pair_groups
+            .iter_mut()
+            .for_each(|pg| pg.pairs.sort_by(|a, b| a.created_at.cmp(&b.created_at)));
         return Ok(ViewPairGroupsResponse {
             usd_pairs: fresh_usd_pairs
                 .iter()
@@ -115,7 +119,7 @@ where
                             created_at: p.created_at.clone(),
                             updated_at: p.updated_at.clone(),
                         })
-                        .collect(),
+                        .collect::<Vec<ResponsePair>>(),
                     created_at: pg.created_at.clone(),
                     updated_at: pg.updated_at.clone(),
                 })
