@@ -9,7 +9,7 @@
 
   export let isOpen: boolean;
   export let usdPairs: Pair[];
-  export let onSubmit: (request: SavePairGroupRequest) => void;
+  export let onSaveClick: (request: SavePairGroupRequest) => void;
 
   let isLoading = true;
   let isDisabled = false;
@@ -281,7 +281,8 @@
         disabled={isDisabled}
         color="primary"
         on:click={() => {
-          onSubmit({
+          isLoading = true;
+          onSaveClick({
             pair_group: {
               is_pinned: false,
               multiplier: pairGroup.multiplier,

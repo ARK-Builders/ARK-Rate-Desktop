@@ -2,6 +2,7 @@
   import type { Pair } from '$lib/business/entities/Pair';
   import type { PairGroup } from '$lib/business/entities/PairGroup';
   import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
+  import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { invoke } from '@tauri-apps/api/core';
   import { Spinner } from 'flowbite-svelte';
@@ -87,7 +88,7 @@
 
   const onCalculateClick = () => (isSavePairGroupOpen = true);
 
-  const onSavePairGroupSubmit = (request: SavePairGroupRequest) => {
+  const onSavePairGroupClick = (request: SavePairGroupRequest) => {
     isLoading = true;
     invoke('save_pair_group', { request: JSON.stringify(request) })
       .then(() => {
@@ -100,7 +101,8 @@
           },
         ];
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         $toasts = [
           ...$toasts,
           {
@@ -119,13 +121,64 @@
   onMount(() => {
     loadPairGroups();
   });
+
+  const onPairGroupPinToggleClick = (pairGroup: PairGroup) => {
+    isLoading = true;
+    invoke('update_pair_group', {
+      request: JSON.stringify({
+        pair_group: {
+          id: pairGroup.id,
+          is_pinned: !pairGroup.isPinned,
+          multiplier: pairGroup.multiplier,
+          pairs: pairGroup.pairs.map((p) => ({
+            id: p.id,
+            base: p.base,
+            value: p.value,
+            comparison: p.comparison,
+          })),
+        },
+      } as UpdatePairGroupRequest),
+    })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Pair pin successfully updated!',
+          },
+        ];
+      })
+      .catch((err) => {
+        console.error(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: 'Unexpected error updating pair pin...',
+          },
+        ];
+      })
+      .finally(() => {
+        loadPairGroups();
+      });
+  };
+
+  const onPairGroupUpdateClick = (pairGroup: PairGroup) => {
+    console.log(pairGroup);
+  };
+
+  const onPairGroupDeleteClick = (pairGroup: PairGroup) => {
+    console.log(pairGroup);
+  };
 </script>
 
 {#if isSavePairGroupOpen}
   <SavePairGroupModal
     bind:isOpen={isSavePairGroupOpen}
     {usdPairs}
-    onSubmit={onSavePairGroupSubmit}
+    onSaveClick={onSavePairGroupClick}
   />
 {/if}
 
@@ -142,6 +195,9 @@
         {onCalculateClick}
         {pinnedPairGroups}
         {unpinnedPairGroups}
+        {onPairGroupUpdateClick}
+        {onPairGroupDeleteClick}
+        {onPairGroupPinToggleClick}
       />
     {/if}
   </div>

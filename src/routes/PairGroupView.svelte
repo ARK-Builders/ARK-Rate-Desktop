@@ -43,7 +43,7 @@
 </script>
 
 <button
-  class="flex w-full gap-2 border-b px-2 py-6 text-start transition-all hover:cursor-pointer"
+  class="flex w-full gap-2 border-b px-2 py-6 text-start hover:cursor-pointer"
   on:click={() => (isOpen = !isOpen)}
 >
   <div class="flex flex-grow-0">
