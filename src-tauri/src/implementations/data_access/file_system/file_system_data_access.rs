@@ -77,6 +77,7 @@ fn read_pair_group(root: &Path, id: &str) -> Result<PairGroup, Error> {
         id: fs_pair_group.id.clone(),
         pairs: vec![],
         is_pinned: fs_pair_group.is_pinned,
+        multiplier: fs_pair_group.multiplier,
         created_at: fs_pair_group.created_at.clone(),
         updated_at: fs_pair_group.updated_at.clone(),
     };
@@ -144,6 +145,7 @@ fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
         &FileSystemPairGroup {
             id: pair_group.id.clone(),
             is_pinned: pair_group.is_pinned,
+            multiplier: pair_group.multiplier,
             pairs: pair_group.pairs.iter().map(|p| p.id.clone()).collect(),
             created_at: pair_group.created_at.clone(),
             updated_at: pair_group.updated_at.clone(),
@@ -309,6 +311,7 @@ mod tests {
             PairGroup {
                 id: "pg1".to_string(),
                 is_pinned: true,
+                multiplier: 1.0,
                 pairs: vec![example_pairs[0].clone(), example_pairs[1].clone()],
                 created_at: Utc::now().to_rfc3339(),
                 updated_at: Utc::now().to_rfc3339(),
@@ -316,6 +319,7 @@ mod tests {
             PairGroup {
                 id: "pg2".to_string(),
                 is_pinned: false,
+                multiplier: 1.0,
                 pairs: vec![example_pairs[2].clone()],
                 created_at: Utc::now().to_rfc3339(),
                 updated_at: Utc::now().to_rfc3339(),
@@ -378,6 +382,7 @@ mod tests {
         let original_pair_group = PairGroup {
             id: "pg1".to_string(),
             is_pinned: false,
+            multiplier: 1.0,
             pairs: vec![example_pairs[0].clone(), example_pairs[1].clone()],
             created_at: Utc::now().to_rfc3339(),
             updated_at: Utc::now().to_rfc3339(),
@@ -388,6 +393,7 @@ mod tests {
         let updated_pair_group = PairGroup {
             id: "pg1".to_string(),
             is_pinned: true,
+            multiplier: 1.0,
             pairs: vec![
                 example_pairs[0].clone(),
                 example_pairs[1].clone(),

@@ -6,6 +6,7 @@ use super::pair::Pair;
 pub struct PairGroup {
     pub id: String,
     pub is_pinned: bool,
+    pub multiplier: f64,
     pub pairs: Vec<Pair>,
     pub created_at: String,
     pub updated_at: String,
@@ -16,6 +17,7 @@ impl PartialEq for PairGroup {
         return self.id == other.id
             && self.pairs == other.pairs
             && self.is_pinned == other.is_pinned
+            && self.multiplier == other.multiplier
             && self.created_at == other.created_at
             && self.updated_at == other.updated_at;
     }

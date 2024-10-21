@@ -39,6 +39,7 @@ impl PartialEq for ResponsePair {
 pub struct ResponsePairGroup {
     pub id: String,
     pub is_pinned: bool,
+    pub multiplier: f64,
     pub pairs: Vec<ResponsePair>,
     pub created_at: String,
     pub updated_at: String,
@@ -102,6 +103,7 @@ where
                 .map(|pg| ResponsePairGroup {
                     id: pg.id.clone(),
                     is_pinned: pg.is_pinned,
+                    multiplier: pg.multiplier,
                     pairs: pg
                         .pairs
                         .iter()
@@ -145,6 +147,7 @@ fn refresh_usd_pair_group(
         id: usd_pair_group.id.clone(),
         pairs: vec![],
         is_pinned: usd_pair_group.is_pinned,
+        multiplier: usd_pair_group.multiplier,
         created_at: usd_pair_group.created_at.clone(),
         updated_at: Utc::now().to_rfc3339(),
     };
@@ -174,6 +177,7 @@ fn refresh_non_usd_pair_group(
         id: non_usd_pair_group.id.clone(),
         pairs: vec![],
         is_pinned: non_usd_pair_group.is_pinned,
+        multiplier: non_usd_pair_group.multiplier,
         created_at: non_usd_pair_group.created_at.clone(),
         updated_at: Utc::now().to_rfc3339(),
     };
@@ -381,6 +385,7 @@ mod test {
         let example_pair_group = PairGroup {
             id: "pg1".to_string(),
             is_pinned: true,
+            multiplier: 1.0,
             pairs: example_pairs.clone(),
             created_at: String::from("2024-01-01T00:00:00+00:00"),
             updated_at: String::from("2024-01-01T05:00:00+00:00"),
@@ -407,6 +412,7 @@ mod test {
         assert_eq!(response_pair_group.id, "pg1");
         assert_eq!(response_pair_group.pairs.len(), 3);
         assert_eq!(response_pair_group.is_pinned, true);
+        assert_eq!(response_pair_group.multiplier, 1.0);
         assert_eq!(response_pair_group.created_at, "2024-01-01T00:00:00+00:00");
         assert_ne!(response_pair_group.updated_at, "2024-01-01T05:00:00+00:00");
 
@@ -518,6 +524,7 @@ mod test {
         let example_pair_group = PairGroup {
             id: "pg1".to_string(),
             is_pinned: false,
+            multiplier: 1.0,
             pairs: example_pairs.clone(),
             created_at: String::from("2024-01-01T00:00:00+00:00"),
             updated_at: String::from("2024-01-01T05:00:00+00:00"),
@@ -544,6 +551,7 @@ mod test {
         assert_eq!(response_pair_group.id, "pg1");
         assert_eq!(response_pair_group.pairs.len(), 3);
         assert_eq!(response_pair_group.is_pinned, false);
+        assert_eq!(response_pair_group.multiplier, 1.0);
         assert_eq!(response_pair_group.created_at, "2024-01-01T00:00:00+00:00");
         assert_eq!(response_pair_group.updated_at, "2024-01-01T05:00:00+00:00");
 
@@ -654,6 +662,7 @@ mod test {
         let example_pair_group = PairGroup {
             id: "pg1".to_string(),
             is_pinned: true,
+            multiplier: 1.0,
             pairs: example_pairs.clone(),
             created_at: String::from("2024-01-01T00:00:00+00:00"),
             updated_at: String::from("2024-01-01T05:00:00+00:00"),
@@ -680,6 +689,7 @@ mod test {
         assert_eq!(response_pair_group.id, "pg1");
         assert_eq!(response_pair_group.pairs.len(), 3);
         assert_eq!(response_pair_group.is_pinned, true);
+        assert_eq!(response_pair_group.multiplier, 1.0);
         assert_eq!(response_pair_group.created_at, "2024-01-01T00:00:00+00:00");
         assert_ne!(response_pair_group.updated_at, "2024-01-01T05:00:00+00:00");
 

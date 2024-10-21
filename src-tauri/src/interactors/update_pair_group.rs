@@ -33,6 +33,7 @@ impl PartialEq for RequestPair {
 pub struct RequestPairGroup {
     pub id: String,
     pub is_pinned: bool,
+    pub multiplier: f64,
     pub pairs: Vec<RequestPair>,
 }
 
@@ -40,7 +41,8 @@ impl PartialEq for RequestPairGroup {
     fn eq(&self, other: &Self) -> bool {
         return self.id == other.id
             && self.pairs == other.pairs
-            && self.is_pinned == other.is_pinned;
+            && self.is_pinned == other.is_pinned
+            && self.multiplier == other.multiplier;
     }
 }
 
@@ -69,6 +71,7 @@ where
         let pair_group = PairGroup {
             id: request.pair_group.id,
             is_pinned: request.pair_group.is_pinned,
+            multiplier: request.pair_group.multiplier,
             pairs: request
                 .pair_group
                 .pairs

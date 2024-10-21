@@ -31,12 +31,15 @@ impl PartialEq for RequestPair {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RequestPairGroup {
     pub is_pinned: bool,
+    pub multiplier: f64,
     pub pairs: Vec<RequestPair>,
 }
 
 impl PartialEq for RequestPairGroup {
     fn eq(&self, other: &Self) -> bool {
-        return self.is_pinned == other.is_pinned && self.pairs == other.pairs;
+        return self.pairs == other.pairs
+            && self.is_pinned == other.is_pinned
+            && self.multiplier == other.multiplier;
     }
 }
 
@@ -62,6 +65,7 @@ where
         let pair_group = PairGroup {
             id: Uuid::new_v4().to_string(),
             is_pinned: request.pair_group.is_pinned,
+            multiplier: request.pair_group.multiplier,
             pairs: request
                 .pair_group
                 .pairs
