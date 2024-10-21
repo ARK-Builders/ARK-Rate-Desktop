@@ -199,7 +199,7 @@ fn refresh_non_usd_pair_group(
                 fresh_non_usd_pair_group.pairs.push(Pair {
                     id: non_usd_pair.id.clone(),
                     base: non_usd_pair.base.clone(),
-                    value: equivalent_usd_value * fresh_usd_pair.value,
+                    value: equivalent_usd_value / fresh_usd_pair.value,
                     comparison: non_usd_pair.comparison.clone(),
                     created_at: non_usd_pair.created_at.clone(),
                     updated_at: Utc::now().to_rfc3339(),
@@ -697,7 +697,7 @@ mod test {
         assert_eq!(response_pair_group.pairs[0].id, "p1");
         assert_eq!(
             round_to_decimal_places(response_pair_group.pairs[0].value, 15),
-            round_to_decimal_places(4.0 / 6.0, 15)
+            round_to_decimal_places((1.0 / 6.0) / 4.0, 15)
         );
         assert_eq!(response_pair_group.pairs[0].base, "BRL");
         assert_eq!(response_pair_group.pairs[0].comparison, "BTC");
@@ -714,7 +714,7 @@ mod test {
         assert_eq!(response_pair_group.pairs[1].id, "p2");
         assert_eq!(
             round_to_decimal_places(response_pair_group.pairs[1].value, 15),
-            round_to_decimal_places(5.0 / 6.0, 15)
+            round_to_decimal_places((1.0 / 6.0) / 5.0, 15)
         );
         assert_eq!(response_pair_group.pairs[1].base, "BRL");
         assert_eq!(response_pair_group.pairs[1].comparison, "ETH");
