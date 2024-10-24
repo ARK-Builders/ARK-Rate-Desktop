@@ -184,7 +184,16 @@
   const onPairGroupUpdate = (request: UpdatePairGroupRequest) => {
     isLoading = true;
     invoke('update_pair_group', { request: JSON.stringify(request) })
-      .then(() => {})
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Pair updated successfully!',
+          },
+        ];
+      })
       .catch((err) => {
         console.error(err);
         $toasts = [
@@ -198,6 +207,7 @@
       })
       .finally(() => {
         loadPairGroups();
+        pairGroupToUpdate = undefined;
       });
   };
 
