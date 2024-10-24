@@ -1,20 +1,20 @@
 <script lang="ts">
   import type { Pair } from '$lib/business/entities/Pair';
   import type { PairGroup } from '$lib/business/entities/PairGroup';
-  import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
+  import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
   import { Button, Hr, Input, Label, Modal, Spinner } from 'flowbite-svelte';
   import { ArrowDownUp, Plus, Trash } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import MultiSelect from 'svelte-multiselect';
 
   export let usdPairs: Pair[];
+  export let pairGroup: PairGroup;
   export let onClose: () => void;
-  export let onSave: (request: SavePairGroupRequest) => void;
+  export let onUpdate: (request: UpdatePairGroupRequest) => void;
 
   let isOpen = true;
   let isLoading = true;
   let isDisabled = false;
-  let pairGroup: PairGroup;
   let options: string[] = [];
   let isAddPairDisabled = false;
 
@@ -62,15 +62,6 @@
   };
 
   onMount(() => {
-    pairGroup = {
-      id: crypto.randomUUID(),
-      multiplier: 1,
-      isPinned: false,
-      pairs: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    addPair();
     options = usdPairs.map((p) => p.comparison);
     isLoading = false;
   });
@@ -167,7 +158,7 @@
   <Modal
     bind:open={isOpen}
     size="xs"
-    title="Add New Pair"
+    title="Update Pair"
     classDialog="absolute"
     on:close={onClose}
   >
@@ -179,7 +170,7 @@
   <Modal
     bind:open={isOpen}
     size="xs"
-    title="Add New Pair"
+    title="Update Pair"
     classDialog="absolute"
     on:close={onClose}
   >
@@ -284,11 +275,13 @@
         color="primary"
         on:click={() => {
           isLoading = true;
-          onSave({
+          onUpdate({
             pair_group: {
+              id: pairGroup.id,
               is_pinned: false,
               multiplier: pairGroup.multiplier,
               pairs: pairGroup.pairs.map((p) => ({
+                id: p.id,
                 base: p.base,
                 value: p.value,
                 comparison: p.comparison,

@@ -12,12 +12,14 @@
   import FilledView from './FilledView.svelte';
   import { toasts } from './layoutStore';
   import SavePairGroupModal from './SavePairGroupModal.svelte';
+  import UpdatePairGroupModal from './UpdatePairGroupModal.svelte';
 
   let isLoading = false;
   let isSavePairGroupOpen = false;
   let usdPairs: Pair[] = [];
   let pinnedPairGroups: PairGroup[] = [];
   let unpinnedPairGroups: PairGroup[] = [];
+  let pairGroupToUpdate: PairGroup | undefined;
 
   const loadPairGroups = () => {
     isLoading = true;
@@ -86,9 +88,11 @@
     }));
   };
 
-  const onCalculateClick = () => (isSavePairGroupOpen = true);
+  const onSavePairGroupOpen = () => {
+    isSavePairGroupOpen = true;
+  };
 
-  const onSavePairGroupClick = (request: SavePairGroupRequest) => {
+  const onPairGroupSave = (request: SavePairGroupRequest) => {
     isLoading = true;
     invoke('save_pair_group', { request: JSON.stringify(request) })
       .then(() => {
@@ -118,11 +122,15 @@
       });
   };
 
+  const onSavePairGroupClose = () => {
+    isSavePairGroupOpen = false;
+  };
+
   onMount(() => {
     loadPairGroups();
   });
 
-  const onPairGroupPinToggleClick = (pairGroup: PairGroup) => {
+  const onPairGroupPinToggle = (pairGroup: PairGroup) => {
     isLoading = true;
     invoke('update_pair_group', {
       request: JSON.stringify({
@@ -165,20 +173,51 @@
       });
   };
 
-  const onPairGroupUpdateClick = (pairGroup: PairGroup) => {
-    console.log(pairGroup);
+  const onUpdatePairGroupOpen = (pairGroup: PairGroup) => {
+    pairGroupToUpdate = pairGroup;
   };
 
-  const onPairGroupDeleteClick = (pairGroup: PairGroup) => {
+  const onUpdatePairGroupClose = () => {
+    pairGroupToUpdate = undefined;
+  };
+
+  const onPairGroupUpdate = (request: UpdatePairGroupRequest) => {
+    isLoading = true;
+    invoke('update_pair_group', { request: JSON.stringify(request) })
+      .then(() => {})
+      .catch((err) => {
+        console.error(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: 'Unexpected error updating pair group...',
+          },
+        ];
+      })
+      .finally(() => {
+        loadPairGroups();
+      });
+  };
+
+  const onDeletePairGroupOpen = (pairGroup: PairGroup) => {
     console.log(pairGroup);
   };
 </script>
 
 {#if isSavePairGroupOpen}
   <SavePairGroupModal
-    bind:isOpen={isSavePairGroupOpen}
     {usdPairs}
-    onSaveClick={onSavePairGroupClick}
+    onSave={onPairGroupSave}
+    onClose={onSavePairGroupClose}
+  />
+{:else if pairGroupToUpdate}
+  <UpdatePairGroupModal
+    {usdPairs}
+    pairGroup={pairGroupToUpdate}
+    onUpdate={onPairGroupUpdate}
+    onClose={onUpdatePairGroupClose}
   />
 {/if}
 
@@ -189,15 +228,15 @@
 {:else}
   <div class="h-full min-h-max w-full min-w-max overflow-auto p-24">
     {#if pinnedPairGroups.length === 0 && unpinnedPairGroups.length === 0}
-      <EmptyView {onCalculateClick} />
+      <EmptyView {onSavePairGroupOpen} />
     {:else}
       <FilledView
-        {onCalculateClick}
         {pinnedPairGroups}
         {unpinnedPairGroups}
-        {onPairGroupUpdateClick}
-        {onPairGroupDeleteClick}
-        {onPairGroupPinToggleClick}
+        {onPairGroupPinToggle}
+        {onSavePairGroupOpen}
+        {onUpdatePairGroupOpen}
+        {onDeletePairGroupOpen}
       />
     {/if}
   </div>

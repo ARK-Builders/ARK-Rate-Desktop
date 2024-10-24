@@ -2,7 +2,7 @@
   import { Button, Heading } from 'flowbite-svelte';
   import { Coins, Plus } from 'lucide-svelte';
 
-  export let onCalculateClick: () => void;
+  export let onSavePairGroupOpen: () => void;
 </script>
 
 <div class="flex h-full w-full items-center justify-center">
@@ -18,7 +18,7 @@
       size="lg"
       color="primary"
       class="flex gap-1"
-      on:click={onCalculateClick}
+      on:click={onSavePairGroupOpen}
     >
       <Plus />
       Calculate

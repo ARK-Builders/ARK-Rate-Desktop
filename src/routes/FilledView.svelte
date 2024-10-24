@@ -7,10 +7,10 @@
 
   export let pinnedPairGroups: PairGroup[];
   export let unpinnedPairGroups: PairGroup[];
-  export let onCalculateClick: () => void;
-  export let onPairGroupUpdateClick: (pairGroup: PairGroup) => void;
-  export let onPairGroupDeleteClick: (pairGroup: PairGroup) => void;
-  export let onPairGroupPinToggleClick: (pairGroup: PairGroup) => void;
+  export let onSavePairGroupOpen: () => void;
+  export let onPairGroupPinToggle: (pairGroup: PairGroup) => void;
+  export let onUpdatePairGroupOpen: (pairGroup: PairGroup) => void;
+  export let onDeletePairGroupOpen: (pairGroup: PairGroup) => void;
 
   let openContextMenu:
     | {
@@ -38,7 +38,7 @@
       size="md"
       color="primary"
       class="flex gap-1"
-      on:click={onCalculateClick}
+      on:click={onSavePairGroupOpen}
     >
       <Plus />
       Calculate
@@ -57,18 +57,18 @@
               {
                 label: 'Unpin',
                 icon: PinOff,
-                onClick: () => onPairGroupPinToggleClick(pairGroup),
+                onClick: () => onPairGroupPinToggle(pairGroup),
               },
               {
                 label: 'Edit',
                 icon: Pencil,
-                onClick: () => onPairGroupUpdateClick(pairGroup),
+                onClick: () => onUpdatePairGroupOpen(pairGroup),
               },
               {
                 label: 'Delete',
                 icon: Trash,
                 class: 'text-red-600',
-                onClick: () => onPairGroupDeleteClick(pairGroup),
+                onClick: () => onDeletePairGroupOpen(pairGroup),
               },
             ]}
             position={{
@@ -103,18 +103,18 @@
               {
                 label: 'Pin',
                 icon: Pin,
-                onClick: () => onPairGroupPinToggleClick(pairGroup),
+                onClick: () => onPairGroupPinToggle(pairGroup),
               },
               {
                 label: 'Edit',
                 icon: Pencil,
-                onClick: () => onPairGroupUpdateClick(pairGroup),
+                onClick: () => onUpdatePairGroupOpen(pairGroup),
               },
               {
                 label: 'Delete',
                 icon: Trash,
                 class: 'text-red-600',
-                onClick: () => onPairGroupDeleteClick(pairGroup),
+                onClick: () => onDeletePairGroupOpen(pairGroup),
               },
             ]}
             position={{
