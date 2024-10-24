@@ -26,7 +26,7 @@
   };
 
   const getEquivalentValueHeading = (): string => {
-    return `${pairGroup.pairs[0].value} ${pairGroup.pairs[0].comparison}`;
+    return `${pairGroup.multiplier * pairGroup.pairs[0].value} ${pairGroup.pairs[0].comparison}`;
   };
 
   const getLastUpdateMessage = (): string => {
@@ -90,7 +90,7 @@
                    alt="USD Logo"
                  /> -->
               </div>
-              <p>{pair.value} {pair.comparison}</p>
+              <p>{pairGroup.multiplier * pair.value} {pair.comparison}</p>
             </div>
           {/each}
         </div>
