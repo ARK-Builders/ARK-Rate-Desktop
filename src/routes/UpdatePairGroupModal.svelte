@@ -278,7 +278,7 @@
           onUpdate({
             pair_group: {
               id: pairGroup.id,
-              is_pinned: false,
+              is_pinned: pairGroup.isPinned,
               multiplier: pairGroup.multiplier,
               pairs: pairGroup.pairs.map((p) => ({
                 id: p.id,
