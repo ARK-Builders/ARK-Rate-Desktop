@@ -53,6 +53,7 @@
         <div class="flex flex-col gap-3">
           <Button
             outline
+            href="/"
             size="sm"
             color="primary"
             checked={$page.url.pathname === '/'}
@@ -65,6 +66,7 @@
             outline
             size="sm"
             color="primary"
+            href="/portfolios"
             checked={$page.url.pathname.startsWith('/portfolios')}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >
@@ -75,6 +77,7 @@
             outline
             size="sm"
             color="primary"
+            href="/alerts"
             checked={$page.url.pathname.startsWith('/alerts')}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >
@@ -85,6 +88,7 @@
             outline
             size="sm"
             color="primary"
+            href="/settings"
             checked={$page.url.pathname.startsWith('/settings')}
             class="justify-start gap-1 border-none px-3 shadow-none"
           >

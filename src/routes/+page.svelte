@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Pair } from '$lib/business/entities/Pair';
   import type { PairGroup } from '$lib/business/entities/PairGroup';
+  import type { DeletePairGroupRequest } from '$lib/business/interactors/delete_pair_group/DeletePairGroupRequest';
   import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
   import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
@@ -8,6 +9,7 @@
   import { Spinner } from 'flowbite-svelte';
   import { DateTime } from 'luxon';
   import { onMount } from 'svelte';
+  import DeletePairGroupModal from './DeletePairGroupModal.svelte';
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
   import { toasts } from './layoutStore';
@@ -20,6 +22,7 @@
   let pinnedPairGroups: PairGroup[] = [];
   let unpinnedPairGroups: PairGroup[] = [];
   let pairGroupToUpdate: PairGroup | undefined;
+  let pairGroupToDelete: PairGroup | undefined;
 
   const loadPairGroups = () => {
     isLoading = true;
@@ -174,7 +177,7 @@
   };
 
   const onUpdatePairGroupOpen = (pairGroup: PairGroup) => {
-    pairGroupToUpdate = pairGroup;
+    pairGroupToUpdate = structuredClone(pairGroup);
   };
 
   const onUpdatePairGroupClose = () => {
@@ -212,7 +215,41 @@
   };
 
   const onDeletePairGroupOpen = (pairGroup: PairGroup) => {
-    console.log(pairGroup);
+    pairGroupToDelete = structuredClone(pairGroup);
+  };
+
+  const onDeletePairGroupClose = () => {
+    pairGroupToDelete = undefined;
+  };
+
+  const onPairGroupDelete = (request: DeletePairGroupRequest) => {
+    isLoading = true;
+    invoke('delete_pair_group', { request: JSON.stringify(request) })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Pair updated successfully!',
+          },
+        ];
+      })
+      .catch((err) => {
+        console.error(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: 'Unexpected error updating pair group...',
+          },
+        ];
+      })
+      .finally(() => {
+        loadPairGroups();
+        pairGroupToDelete = undefined;
+      });
   };
 </script>
 
@@ -228,6 +265,12 @@
     pairGroup={pairGroupToUpdate}
     onUpdate={onPairGroupUpdate}
     onClose={onUpdatePairGroupClose}
+  />
+{:else if pairGroupToDelete}
+  <DeletePairGroupModal
+    pairGroup={pairGroupToDelete}
+    onDelete={onPairGroupDelete}
+    onClose={onDeletePairGroupClose}
   />
 {/if}
 
