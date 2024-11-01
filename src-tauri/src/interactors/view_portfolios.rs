@@ -1,11 +1,16 @@
 use serde::Serialize;
 
-use crate::Error;
+use crate::{
+    entities::{asset::Asset, pair::Pair, tag::Tag},
+    utilities::coin_market::CoinMarket,
+    Error,
+};
 
 use super::interactor::Interactor;
 
 pub trait ViewPortfoliosDataAccess {
-    // TODO: add methods or delete it
+    async fn fetch_tags(&mut self) -> Result<Vec<Tag>, Error>;
+    async fn fetch_assets(&mut self) -> Result<Vec<Asset>, Error>;
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -53,20 +58,31 @@ pub struct ViewPortfoliosResponse {
     portfolios: Vec<ResponsePortfolio>,
 }
 
-pub struct ViewPortfolios<DA> {
+pub struct ViewPortfolios<DA, CM> {
     pub data_access: DA,
+    pub coin_market: CM,
 }
 
-impl<DA> Interactor<(), ViewPortfoliosResponse> for ViewPortfolios<DA>
+impl<DA, CM> Interactor<(), ViewPortfoliosResponse> for ViewPortfolios<DA, CM>
 where
     DA: ViewPortfoliosDataAccess,
+    CM: CoinMarket,
 {
     async fn perform(&mut self, _request: ()) -> Result<ViewPortfoliosResponse, Error> {
-        // TODO: implement it
-        return Err(Error {
-            message: String::from("Not implemented!"),
-        });
+        let tags = self.data_access.fetch_tags().await?;
+        let assets = self.data_access.fetch_assets().await?;
+        let usd_pairs = self.coin_market.retrieve_usd_pairs().await?;
+        let portfolios = create_portfolios(&tags, &assets, &usd_pairs);
+        return Ok(ViewPortfoliosResponse { portfolios });
     }
+}
+
+fn create_portfolios(
+    tags: &Vec<Tag>,
+    assets: &Vec<Asset>,
+    usd_pairs: &Vec<Pair>,
+) -> Vec<ResponsePortfolio> {
+    return vec![];
 }
 
 #[cfg(test)]
