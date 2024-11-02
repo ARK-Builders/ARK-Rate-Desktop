@@ -15,6 +15,27 @@ pub trait ViewPortfoliosDataAccess {
 }
 
 #[derive(Clone, Debug, Serialize)]
+pub struct ResponsePair {
+    pub id: String,
+    pub value: f64,
+    pub base: String,
+    pub comparison: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+impl PartialEq for ResponsePair {
+    fn eq(&self, other: &Self) -> bool {
+        return self.id == other.id
+            && self.base == other.base
+            && self.value == other.value
+            && self.comparison == other.comparison
+            && self.created_at == other.created_at
+            && self.updated_at == other.updated_at;
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
 pub struct ResponseTag {
     pub id: String,
     pub name: String,
@@ -56,7 +77,8 @@ impl PartialEq for ResponsePortfolio {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ViewPortfoliosResponse {
-    portfolios: Vec<ResponsePortfolio>,
+    pub usd_pairs: Vec<ResponsePair>,
+    pub portfolios: Vec<ResponsePortfolio>,
 }
 
 pub struct ViewPortfolios<DA, CM> {
@@ -74,7 +96,20 @@ where
         let assets = self.data_access.fetch_assets().await?;
         let usd_pairs = self.coin_market.retrieve_usd_pairs().await?;
         let portfolios = create_portfolios(&tags, &assets, &usd_pairs)?;
-        return Ok(ViewPortfoliosResponse { portfolios });
+        return Ok(ViewPortfoliosResponse {
+            portfolios,
+            usd_pairs: usd_pairs
+                .iter()
+                .map(|p| ResponsePair {
+                    id: p.id.clone(),
+                    base: p.base.clone(),
+                    value: p.value.clone(),
+                    comparison: p.comparison.clone(),
+                    created_at: p.created_at.clone(),
+                    updated_at: p.updated_at.clone(),
+                })
+                .collect(),
+        });
     }
 }
 
