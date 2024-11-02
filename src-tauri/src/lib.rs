@@ -9,6 +9,7 @@ use interactors::{
     save_pair_group::{SavePairGroup, SavePairGroupRequest},
     update_pair_group::{UpdatePairGroup, UpdatePairGroupRequest},
     view_pair_groups::ViewPairGroups,
+    view_portfolios::ViewPortfolios,
 };
 
 mod entities;
@@ -91,6 +92,22 @@ async fn delete_pair_group(request: String) -> String {
     return result_json;
 }
 
+#[tauri::command]
+async fn view_portfolios() -> String {
+    let coin_market = GithubCoinMarket {
+        fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
+        crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
+    };
+    let data_access = create_fs_data_access();
+    let mut interactor = ViewPortfolios {
+        coin_market,
+        data_access,
+    };
+    let result = interactor.perform(()).await.unwrap();
+    let result_json = serde_json::to_string(&result).unwrap();
+    return result_json;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -99,7 +116,8 @@ pub fn run() {
             view_pair_groups,
             save_pair_group,
             update_pair_group,
-            delete_pair_group
+            delete_pair_group,
+            view_portfolios,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

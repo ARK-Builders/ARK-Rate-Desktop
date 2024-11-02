@@ -7,18 +7,24 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    entities::{pair::Pair, pair_group::PairGroup},
+    entities::{asset::Asset, pair::Pair, pair_group::PairGroup, tag::Tag},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
         delete_pair_group::DeletePairGroupDataAccess, save_pair_group::SavePairGroupDataAccess,
         update_pair_group::UpdatePairGroupDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
+        view_portfolios::ViewPortfoliosDataAccess,
     },
     Error,
 };
 
-use super::file_system_pair_group::FileSystemPairGroup;
+use super::{
+    file_system_asset::FileSystemAsset, file_system_pair_group::FileSystemPairGroup,
+    file_system_tag::FileSystemTag,
+};
 
+const TAGS_DIR_NAME: &str = "tag";
 const PAIRS_DIR_NAME: &str = "pairs";
+const ASSETS_DIR_NAME: &str = "assets";
 const PAIR_GROUPS_DIR_NAME: &str = "pair_groups";
 
 pub struct FileSystemDataAccess {
@@ -254,6 +260,73 @@ fn remove_object_file(path: &Path) -> Result<(), Error> {
         message: e.to_string(),
     })?;
     return Ok(());
+}
+
+impl ViewPortfoliosDataAccess for FileSystemDataAccess {
+    async fn fetch_tags(&mut self) -> Result<Vec<Tag>, Error> {
+        return fetch_tags(&self).await;
+    }
+
+    async fn fetch_assets(&mut self) -> Result<Vec<Asset>, Error> {
+        return fetch_assets(&self).await;
+    }
+}
+
+async fn fetch_tags(data_access: &FileSystemDataAccess) -> Result<Vec<Tag>, Error> {
+    let mut tags: Vec<Tag> = vec![];
+    let entries = get_dir_entries(&data_access.root, TAGS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(id) = file_name.to_str() {
+            let tag = read_tag(&data_access.root, id)?;
+            tags.push(tag);
+        }
+    }
+    return Ok(tags);
+}
+
+fn read_tag(root: &Path, id: &str) -> Result<Tag, Error> {
+    let dir = ensure_dir(root, TAGS_DIR_NAME)?;
+    let path = dir.join(id);
+    let fs_tag = create_object_from_file::<FileSystemTag>(&path)?;
+    let mut tag = Tag {
+        id: fs_tag.id.clone(),
+        assets: vec![],
+        name: fs_tag.name.clone(),
+        created_at: fs_tag.created_at.clone(),
+        updated_at: fs_tag.updated_at.clone(),
+    };
+    for asset_id in &fs_tag.assets {
+        let asset = read_asset(root, asset_id)?;
+        tag.assets.push(asset);
+    }
+    return Ok(tag);
+}
+
+fn read_asset(root: &Path, id: &str) -> Result<Asset, Error> {
+    let dir = ensure_dir(root, ASSETS_DIR_NAME)?;
+    let path = dir.join(id);
+    let fs_asset = create_object_from_file::<FileSystemAsset>(&path)?;
+    return Ok(Asset {
+        id: fs_asset.id.clone(),
+        coin: fs_asset.coin.clone(),
+        quantity: fs_asset.quantity.clone(),
+        created_at: fs_asset.created_at.clone(),
+        updated_at: fs_asset.updated_at.clone(),
+    });
+}
+
+async fn fetch_assets(data_access: &FileSystemDataAccess) -> Result<Vec<Asset>, Error> {
+    let mut assets: Vec<Asset> = vec![];
+    let entries = get_dir_entries(&data_access.root, ASSETS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(id) = file_name.to_str() {
+            let asset = read_asset(&data_access.root, id)?;
+            assets.push(asset);
+        }
+    }
+    return Ok(assets);
 }
 
 #[cfg(test)]
