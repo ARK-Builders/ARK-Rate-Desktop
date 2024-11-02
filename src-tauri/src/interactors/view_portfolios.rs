@@ -1,3 +1,4 @@
+use chrono::Utc;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -39,6 +40,8 @@ impl PartialEq for ResponsePair {
 pub struct ResponseTag {
     pub id: String,
     pub name: String,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 impl PartialEq for ResponseTag {
@@ -52,6 +55,8 @@ pub struct ResponseAsset {
     pub id: String,
     pub coin: String,
     pub quantity: f64,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 impl PartialEq for ResponseAsset {
@@ -130,6 +135,8 @@ fn create_portfolios(
         let default_tag = ResponseTag {
             id: Uuid::new_v4().to_string(),
             name: String::from("Untagged"),
+            created_at: Utc::now().to_rfc3339(),
+            updated_at: Utc::now().to_rfc3339(),
         };
         for asset in &standalone_assets {
             let equivalent_usd_value = get_equivalent_usd_value(usd_pairs, &asset.coin)?;
@@ -154,11 +161,15 @@ fn create_portfolio(
         tag: ResponseTag {
             id: tag.id.clone(),
             name: tag.name.clone(),
+            created_at: tag.created_at.clone(),
+            updated_at: tag.updated_at.clone(),
         },
         asset: ResponseAsset {
             id: asset.id.clone(),
             coin: asset.coin.clone(),
             quantity: asset.quantity.clone(),
+            created_at: asset.created_at.clone(),
+            updated_at: asset.updated_at.clone(),
         },
     });
 }
@@ -198,6 +209,8 @@ fn retrieve_standalone_assets(tags: &Vec<Tag>, assets: &Vec<Asset>) -> Vec<Respo
                 id: asset.id.clone(),
                 coin: asset.coin.clone(),
                 quantity: asset.quantity.clone(),
+                created_at: asset.created_at.clone(),
+                updated_at: asset.updated_at.clone(),
             });
         }
     }
@@ -326,11 +339,15 @@ mod test {
             tag: ResponseTag {
                 id: "t1".to_string(),
                 name: "Tag One".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
             asset: ResponseAsset {
                 id: "a1".to_string(),
                 quantity: 10.0,
                 coin: "USD".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
         }));
         assert!(response.portfolios.contains(&ResponsePortfolio {
@@ -338,11 +355,15 @@ mod test {
             tag: ResponseTag {
                 id: "t1".to_string(),
                 name: "Tag One".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
             asset: ResponseAsset {
                 id: "a2".to_string(),
                 quantity: 20.0,
                 coin: "EUR".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
         }));
         assert!(response.portfolios.contains(&ResponsePortfolio {
@@ -350,11 +371,15 @@ mod test {
             tag: ResponseTag {
                 id: "t2".to_string(),
                 name: "Tag Two".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
             asset: ResponseAsset {
                 id: "a2".to_string(),
                 quantity: 20.0,
                 coin: "EUR".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
         }));
         assert!(response.portfolios.contains(&ResponsePortfolio {
@@ -362,11 +387,15 @@ mod test {
             tag: ResponseTag {
                 id: "t2".to_string(),
                 name: "Tag Two".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
             asset: ResponseAsset {
                 id: "a3".to_string(),
                 quantity: 30.0,
                 coin: "BRL".to_string(),
+                created_at: String::from("2024-01-01T10:00:00+00:00"),
+                updated_at: String::from("2024-01-01T10:00:00+00:00"),
             },
         }));
     }
