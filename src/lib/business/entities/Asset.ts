@@ -1,9 +1,8 @@
 // TODO: instead of using an entity, use the corresponding response directly
-export interface Pair {
+export interface Asset {
   id: string;
-  base: string;
-  value: number;
-  comparison: string;
+  coin: string;
+  quantity: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,5 +1,6 @@
 import type { Pair } from './Pair';
 
+// TODO: instead of using an entity, use the corresponding response directly
 export interface PairGroup {
   id: string;
   pairs: Pair[];
