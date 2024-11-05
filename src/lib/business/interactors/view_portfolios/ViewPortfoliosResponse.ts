@@ -10,16 +10,19 @@ interface ResponsePair {
 interface ResponseTag {
   id: string;
   name: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ResponseAsset {
   id: string;
   coin: string;
   quantity: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ResponsePortfolio {
-  usd_value: number;
   tag: ResponseTag;
   asset: ResponseAsset;
 }

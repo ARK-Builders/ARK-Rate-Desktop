@@ -3,7 +3,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::{
-    entities::{asset::Asset, pair::Pair, tag::Tag},
+    entities::{asset::Asset, tag::Tag},
     utilities::coin_market::CoinMarket,
     Error,
 };
@@ -67,16 +67,13 @@ impl PartialEq for ResponseAsset {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ResponsePortfolio {
-    pub usd_value: f64,
-    pub tag: ResponseTag,
+    pub tag: Option<ResponseTag>,
     pub asset: ResponseAsset,
 }
 
 impl PartialEq for ResponsePortfolio {
     fn eq(&self, other: &Self) -> bool {
-        return self.usd_value == other.usd_value
-            && self.tag == other.tag
-            && self.asset == other.asset;
+        return self.tag == other.tag && self.asset == other.asset;
     }
 }
 
@@ -100,7 +97,7 @@ where
         let tags = self.data_access.fetch_tags().await?;
         let assets = self.data_access.fetch_assets().await?;
         let usd_pairs = self.coin_market.retrieve_usd_pairs().await?;
-        let portfolios = create_portfolios(&tags, &assets, &usd_pairs)?;
+        let portfolios = create_portfolios(&tags, &assets)?;
         return Ok(ViewPortfoliosResponse {
             portfolios,
             usd_pairs: usd_pairs
@@ -121,12 +118,11 @@ where
 fn create_portfolios(
     tags: &Vec<Tag>,
     assets: &Vec<Asset>,
-    usd_pairs: &Vec<Pair>,
 ) -> Result<Vec<ResponsePortfolio>, Error> {
     let mut portfolios: Vec<ResponsePortfolio> = vec![];
     for tag in tags {
         for asset in &tag.assets {
-            let portfolio = create_portfolio(tag, asset, usd_pairs)?;
+            let portfolio = create_portfolio(tag, asset)?;
             portfolios.push(portfolio);
         }
     }
@@ -139,31 +135,23 @@ fn create_portfolios(
             updated_at: Utc::now().to_rfc3339(),
         };
         for asset in &standalone_assets {
-            let equivalent_usd_value = get_equivalent_usd_value(usd_pairs, &asset.coin)?;
             portfolios.push(ResponsePortfolio {
+                tag: Some(default_tag.clone()),
                 asset: asset.clone(),
-                tag: default_tag.clone(),
-                usd_value: equivalent_usd_value * asset.quantity,
             });
         }
     }
     return Ok(portfolios);
 }
 
-fn create_portfolio(
-    tag: &Tag,
-    asset: &Asset,
-    usd_pairs: &Vec<Pair>,
-) -> Result<ResponsePortfolio, Error> {
-    let equivalent_usd_value = get_equivalent_usd_value(usd_pairs, &asset.coin)?;
+fn create_portfolio(tag: &Tag, asset: &Asset) -> Result<ResponsePortfolio, Error> {
     return Ok(ResponsePortfolio {
-        usd_value: equivalent_usd_value * asset.quantity,
-        tag: ResponseTag {
+        tag: Some(ResponseTag {
             id: tag.id.clone(),
             name: tag.name.clone(),
             created_at: tag.created_at.clone(),
             updated_at: tag.updated_at.clone(),
-        },
+        }),
         asset: ResponseAsset {
             id: asset.id.clone(),
             coin: asset.coin.clone(),
@@ -171,21 +159,6 @@ fn create_portfolio(
             created_at: asset.created_at.clone(),
             updated_at: asset.updated_at.clone(),
         },
-    });
-}
-
-// TODO: create an utils module containing this function
-fn get_equivalent_usd_value(usd_pairs: &Vec<Pair>, target_base: &str) -> Result<f64, Error> {
-    if target_base == "USD" {
-        return Ok(1.0);
-    }
-    for usd_pair in usd_pairs {
-        if usd_pair.comparison == target_base {
-            return Ok(1.0 / usd_pair.value);
-        }
-    }
-    return Err(Error {
-        message: String::from("Could not find the equivalent USD value for the target base!"),
     });
 }
 
@@ -219,6 +192,8 @@ fn retrieve_standalone_assets(tags: &Vec<Tag>, assets: &Vec<Asset>) -> Vec<Respo
 
 #[cfg(test)]
 mod test {
+    use crate::entities::pair::Pair;
+
     use super::*;
 
     pub struct ViewPortfoliosDataAccessMock {
@@ -335,13 +310,12 @@ mod test {
         assert_eq!(response.portfolios.len(), 4);
 
         assert!(response.portfolios.contains(&ResponsePortfolio {
-            usd_value: 10.0,
-            tag: ResponseTag {
+            tag: Some(ResponseTag {
                 id: "t1".to_string(),
                 name: "Tag One".to_string(),
                 created_at: String::from("2024-01-01T10:00:00+00:00"),
                 updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
+            }),
             asset: ResponseAsset {
                 id: "a1".to_string(),
                 quantity: 10.0,
@@ -351,13 +325,12 @@ mod test {
             },
         }));
         assert!(response.portfolios.contains(&ResponsePortfolio {
-            usd_value: 20.0 / 5.0,
-            tag: ResponseTag {
+            tag: Some(ResponseTag {
                 id: "t1".to_string(),
                 name: "Tag One".to_string(),
                 created_at: String::from("2024-01-01T10:00:00+00:00"),
                 updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
+            }),
             asset: ResponseAsset {
                 id: "a2".to_string(),
                 quantity: 20.0,
@@ -367,13 +340,12 @@ mod test {
             },
         }));
         assert!(response.portfolios.contains(&ResponsePortfolio {
-            usd_value: 20.0 / 5.0,
-            tag: ResponseTag {
+            tag: Some(ResponseTag {
                 id: "t2".to_string(),
                 name: "Tag Two".to_string(),
                 created_at: String::from("2024-01-01T10:00:00+00:00"),
                 updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
+            }),
             asset: ResponseAsset {
                 id: "a2".to_string(),
                 quantity: 20.0,
@@ -383,13 +355,12 @@ mod test {
             },
         }));
         assert!(response.portfolios.contains(&ResponsePortfolio {
-            usd_value: 30.0 / 6.0,
-            tag: ResponseTag {
+            tag: Some(ResponseTag {
                 id: "t2".to_string(),
                 name: "Tag Two".to_string(),
                 created_at: String::from("2024-01-01T10:00:00+00:00"),
                 updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
+            }),
             asset: ResponseAsset {
                 id: "a3".to_string(),
                 quantity: 30.0,
