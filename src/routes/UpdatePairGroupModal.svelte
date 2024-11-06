@@ -1,13 +1,16 @@
 <script lang="ts">
-  import type { Pair } from '$lib/business/entities/Pair';
-  import type { PairGroup } from '$lib/business/entities/PairGroup';
   import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
+  import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { Button, Hr, Input, Label, Modal, Spinner } from 'flowbite-svelte';
   import { ArrowDownUp, Plus, Trash } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import MultiSelect from 'svelte-multiselect';
 
-  export let usdPairs: Pair[];
+  type USDPair = ViewPairGroupsResponse['usd_pairs'][0];
+  type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
+  type Pair = PairGroup['pairs'][0];
+
+  export let usdPairs: USDPair[];
   export let pairGroup: PairGroup;
   export let onClose: () => void;
   export let onUpdate: (request: UpdatePairGroupRequest) => void;
@@ -55,8 +58,8 @@
         base,
         comparison,
         value: baseValue / comparisonValue,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
     ];
   };
@@ -278,7 +281,7 @@
           onUpdate({
             pair_group: {
               id: pairGroup.id,
-              is_pinned: pairGroup.isPinned,
+              is_pinned: pairGroup.is_pinned,
               multiplier: pairGroup.multiplier,
               pairs: pairGroup.pairs.map((p) => ({
                 id: p.id,

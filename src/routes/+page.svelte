@@ -1,13 +1,10 @@
 <script lang="ts">
-  import type { Pair } from '$lib/business/entities/Pair';
-  import type { PairGroup } from '$lib/business/entities/PairGroup';
   import type { DeletePairGroupRequest } from '$lib/business/interactors/delete_pair_group/DeletePairGroupRequest';
   import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
   import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { invoke } from '@tauri-apps/api/core';
   import { Spinner } from 'flowbite-svelte';
-  import { DateTime } from 'luxon';
   import { onMount } from 'svelte';
   import DeletePairGroupModal from './DeletePairGroupModal.svelte';
   import EmptyView from './EmptyView.svelte';
@@ -16,9 +13,12 @@
   import SavePairGroupModal from './SavePairGroupModal.svelte';
   import UpdatePairGroupModal from './UpdatePairGroupModal.svelte';
 
+  type USDPair = ViewPairGroupsResponse['usd_pairs'][0];
+  type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
+
   let isLoading = false;
   let isSavePairGroupOpen = false;
-  let usdPairs: Pair[] = [];
+  let usdPairs: USDPair[] = [];
   let pinnedPairGroups: PairGroup[] = [];
   let unpinnedPairGroups: PairGroup[] = [];
   let pairGroupToUpdate: PairGroup | undefined;
@@ -33,34 +33,13 @@
       .then((rawResponse) => {
         const response: ViewPairGroupsResponse = JSON.parse(rawResponse as string);
         for (const pair of response['usd_pairs']) {
-          usdPairs.push({
-            id: pair.id,
-            base: pair.base,
-            value: pair.value,
-            comparison: pair.comparison,
-            createdAt: DateTime.fromISO(pair['created_at']).toJSDate(),
-            updatedAt: DateTime.fromISO(pair['updated_at']).toJSDate(),
-          });
+          usdPairs.push(pair);
         }
         for (const pairGroup of response['pair_groups']) {
           if (pairGroup['is_pinned']) {
-            pinnedPairGroups.push({
-              id: pairGroup['id'],
-              isPinned: true,
-              multiplier: pairGroup['multiplier'],
-              pairs: createPairsFromResponse(pairGroup['pairs']),
-              createdAt: DateTime.fromISO(pairGroup['created_at']).toJSDate(),
-              updatedAt: DateTime.fromISO(pairGroup['updated_at']).toJSDate(),
-            });
+            pinnedPairGroups.push(pairGroup);
           } else {
-            unpinnedPairGroups.push({
-              id: pairGroup['id'],
-              isPinned: false,
-              multiplier: pairGroup['multiplier'],
-              pairs: createPairsFromResponse(pairGroup['pairs']),
-              createdAt: DateTime.fromISO(pairGroup['created_at']).toJSDate(),
-              updatedAt: DateTime.fromISO(pairGroup['updated_at']).toJSDate(),
-            });
+            unpinnedPairGroups.push(pairGroup);
           }
         }
       })
@@ -78,17 +57,6 @@
       .finally(() => {
         isLoading = false;
       });
-  };
-
-  const createPairsFromResponse = (pairs: any[]): Pair[] => {
-    return pairs.map((p) => ({
-      id: p['id'],
-      base: p['base'],
-      value: p['value'],
-      comparison: p['comparison'],
-      createdAt: new Date(p['createdAt']),
-      updatedAt: new Date(p['updatedAt']),
-    }));
   };
 
   const onSavePairGroupOpen = () => {
@@ -139,7 +107,7 @@
       request: JSON.stringify({
         pair_group: {
           id: pairGroup.id,
-          is_pinned: !pairGroup.isPinned,
+          is_pinned: !pairGroup.is_pinned,
           multiplier: pairGroup.multiplier,
           pairs: pairGroup.pairs.map((p) => ({
             id: p.id,

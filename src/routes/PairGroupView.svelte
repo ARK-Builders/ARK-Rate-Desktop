@@ -1,7 +1,9 @@
 <script lang="ts">
-  import type { PairGroup } from '$lib/business/entities/PairGroup';
+  import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { ChevronDown, ChevronUp } from 'lucide-svelte';
   import { DateTime, Duration } from 'luxon';
+
+  type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
 
   export let pairGroup: PairGroup;
 
@@ -31,7 +33,7 @@
 
   const getLastUpdateMessage = (): string => {
     const now = DateTime.now();
-    const lastUpdate = DateTime.fromJSDate(pairGroup.updatedAt);
+    const lastUpdate = DateTime.fromISO(pairGroup.updated_at);
     const duration = Duration.fromMillis(now.toMillis() - lastUpdate.toMillis());
     return duration.shiftTo('minutes').toHuman({
       listStyle: 'narrow',
@@ -95,7 +97,7 @@
           {/each}
         </div>
       </div>
-      <p>Last {pairGroup.isPinned ? 'refreshed' : 'updated'} {getLastUpdateMessage()} ago</p>
+      <p>Last {pairGroup.is_pinned ? 'refreshed' : 'updated'} {getLastUpdateMessage()} ago</p>
     </div>
   </div>
 </button>

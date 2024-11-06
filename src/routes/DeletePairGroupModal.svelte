@@ -1,8 +1,10 @@
 <script lang="ts">
-  import type { PairGroup } from '$lib/business/entities/PairGroup';
   import type { DeletePairGroupRequest } from '$lib/business/interactors/delete_pair_group/DeletePairGroupRequest';
+  import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { Button, Modal } from 'flowbite-svelte';
   import { CircleAlert } from 'lucide-svelte';
+
+  type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
 
   export let pairGroup: PairGroup;
   export let onClose: () => void;

@@ -1,13 +1,16 @@
 <script lang="ts">
-  import type { Pair } from '$lib/business/entities/Pair';
-  import type { PairGroup } from '$lib/business/entities/PairGroup';
   import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
+  import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { Button, Hr, Input, Label, Modal, Spinner } from 'flowbite-svelte';
   import { ArrowDownUp, Plus, Trash } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import MultiSelect from 'svelte-multiselect';
 
-  export let usdPairs: Pair[];
+  type USDPair = ViewPairGroupsResponse['usd_pairs'][0];
+  type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
+  type Pair = PairGroup['pairs'][0];
+
+  export let usdPairs: USDPair[];
   export let onClose: () => void;
   export let onSave: (request: SavePairGroupRequest) => void;
 
@@ -55,8 +58,8 @@
         base,
         comparison,
         value: baseValue / comparisonValue,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
     ];
   };
@@ -65,10 +68,10 @@
     pairGroup = {
       id: crypto.randomUUID(),
       multiplier: 1,
-      isPinned: false,
+      is_pinned: false,
       pairs: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     addPair();
     options = usdPairs.map((p) => p.comparison);

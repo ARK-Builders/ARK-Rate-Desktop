@@ -1,9 +1,11 @@
 <script lang="ts">
-  import type { PairGroup } from '$lib/business/entities/PairGroup';
+  import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { Button, Heading } from 'flowbite-svelte';
   import { Coins, Pencil, Pin, PinOff, Plus, Trash } from 'lucide-svelte';
   import ContextMenu from './ContextMenu.svelte';
   import PairGroupView from './PairGroupView.svelte';
+
+  type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
 
   export let pinnedPairGroups: PairGroup[];
   export let unpinnedPairGroups: PairGroup[];
