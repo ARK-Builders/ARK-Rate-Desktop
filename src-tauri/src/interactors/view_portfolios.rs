@@ -1,6 +1,4 @@
-use chrono::Utc;
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::{
     entities::{asset::Asset, tag::Tag},
@@ -127,19 +125,11 @@ fn create_portfolios(
         }
     }
     let standalone_assets = retrieve_standalone_assets(tags, assets);
-    if standalone_assets.len() > 0 {
-        let default_tag = ResponseTag {
-            id: Uuid::new_v4().to_string(),
-            name: String::from("Untagged"),
-            created_at: Utc::now().to_rfc3339(),
-            updated_at: Utc::now().to_rfc3339(),
-        };
-        for asset in &standalone_assets {
-            portfolios.push(ResponsePortfolio {
-                tag: Some(default_tag.clone()),
-                asset: asset.clone(),
-            });
-        }
+    for asset in &standalone_assets {
+        portfolios.push(ResponsePortfolio {
+            tag: None,
+            asset: asset.clone(),
+        });
     }
     return Ok(portfolios);
 }
