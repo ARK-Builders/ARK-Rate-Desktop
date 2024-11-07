@@ -31,7 +31,7 @@
       <Coins class="size-16 text-green-500" />
       <div class="flex flex-col gap-1">
         <Heading tag="h4">Ready for calculation!</Heading>
-        <p class="text-gray-500">
+        <p class="max-w-2xl text-gray-500">
           Select your currencies and enter an amount to start converting. Your exchange results will appear here.
         </p>
       </div>
