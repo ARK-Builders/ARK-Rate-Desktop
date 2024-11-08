@@ -7,6 +7,7 @@
   type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
 
   export let pairGroup: PairGroup;
+
   export let onClose: () => void;
   export let onDelete: (request: DeletePairGroupRequest) => void;
 

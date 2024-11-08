@@ -12,14 +12,16 @@
 
   export let usdPairs: USDPair[];
   export let pairGroup: PairGroup;
+
   export let onClose: () => void;
   export let onUpdate: (request: UpdatePairGroupRequest) => void;
 
   let isOpen = true;
   let isLoading = true;
   let isDisabled = false;
-  let options: string[] = [];
   let isAddPairDisabled = false;
+
+  let options: string[] = [];
 
   const getRandomBase = (): string => {
     const randomIndex = Math.floor(Math.random() * usdPairs.length);

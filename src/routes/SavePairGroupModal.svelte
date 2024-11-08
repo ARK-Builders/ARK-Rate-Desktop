@@ -11,15 +11,17 @@
   type Pair = PairGroup['pairs'][0];
 
   export let usdPairs: USDPair[];
+
   export let onClose: () => void;
   export let onSave: (request: SavePairGroupRequest) => void;
 
   let isOpen = true;
   let isLoading = true;
   let isDisabled = false;
+  let isAddPairDisabled = false;
+
   let pairGroup: PairGroup;
   let options: string[] = [];
-  let isAddPairDisabled = false;
 
   const getRandomBase = (): string => {
     const randomIndex = Math.floor(Math.random() * usdPairs.length);
