@@ -9,12 +9,13 @@
 
   export let pinnedPairGroups: PairGroup[];
   export let unpinnedPairGroups: PairGroup[];
+
   export let onSavePairGroupOpen: () => void;
   export let onPairGroupPinToggle: (pairGroup: PairGroup) => void;
   export let onUpdatePairGroupOpen: (pairGroup: PairGroup) => void;
   export let onDeletePairGroupOpen: (pairGroup: PairGroup) => void;
 
-  let openContextMenu:
+  let contextMenu:
     | {
         id: string;
         x: number;
@@ -23,7 +24,7 @@
     | undefined;
 </script>
 
-<svelte:window on:click={() => (openContextMenu = undefined)} />
+<svelte:window on:click={() => (contextMenu = undefined)} />
 
 <div class="flex flex-col gap-16">
   <div class="flex items-center justify-between gap-12">
@@ -53,7 +54,7 @@
         <Pin class="size-5 rotate-45 fill-gray-500" />
       </div>
       {#each pinnedPairGroups as pairGroup}
-        {#if pairGroup.id === openContextMenu?.id}
+        {#if pairGroup.id === contextMenu?.id}
           <ContextMenu
             menuItems={[
               {
@@ -74,14 +75,14 @@
               },
             ]}
             position={{
-              x: openContextMenu.x,
-              y: openContextMenu.y,
+              x: contextMenu.x,
+              y: contextMenu.y,
             }}
           />
         {/if}
         <button
           on:contextmenu|preventDefault={(event) => {
-            openContextMenu = {
+            contextMenu = {
               id: pairGroup.id,
               x: event.clientX,
               y: event.clientY,
@@ -99,7 +100,7 @@
         <p class="font-bold">Calculated pairs</p>
       </div>
       {#each unpinnedPairGroups as pairGroup}
-        {#if pairGroup.id === openContextMenu?.id}
+        {#if pairGroup.id === contextMenu?.id}
           <ContextMenu
             menuItems={[
               {
@@ -120,14 +121,14 @@
               },
             ]}
             position={{
-              x: openContextMenu.x,
-              y: openContextMenu.y,
+              x: contextMenu.x,
+              y: contextMenu.y,
             }}
           />
         {/if}
         <button
           on:contextmenu|preventDefault={(event) => {
-            openContextMenu = {
+            contextMenu = {
               id: pairGroup.id,
               x: event.clientX,
               y: event.clientY,
