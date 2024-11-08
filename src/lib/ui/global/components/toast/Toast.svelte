@@ -1,9 +1,9 @@
 <script lang="ts">
+  import { toasts, type ToastProperties } from '$lib/ui/global/stores/toastStore';
   import { Toast } from 'flowbite-svelte';
   import { CircleAlert, CircleHelp, Clock, Stars, TriangleAlert } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { fly } from 'svelte/transition';
-  import { toasts, type ToastProperties } from './layoutStore';
 
   export let id: string;
   export let message: string;

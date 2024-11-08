@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
+  import ContextMenu from '$lib/ui/global/components/context_menu/ContextMenu.svelte';
   import { Button, Heading } from 'flowbite-svelte';
   import { Coins, Pencil, Pin, PinOff, Plus, Trash } from 'lucide-svelte';
-  import ContextMenu from './ContextMenu.svelte';
   import PairGroupView from './PairGroupView.svelte';
 
   type PairGroup = ViewPairGroupsResponse['pair_groups'][0];

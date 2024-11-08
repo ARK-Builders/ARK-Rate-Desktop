@@ -1,10 +1,10 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import Toast from '$lib/ui/global/components/toast/Toast.svelte';
+  import { toasts } from '$lib/ui/global/stores/toastStore';
   import { Button, Input } from 'flowbite-svelte';
   import { Bell, ChartNoAxesColumn, Coins, PanelLeft, Search, Settings } from 'lucide-svelte';
   import '../app.css';
-  import { toasts } from './layoutStore';
-  import Toast from './Toast.svelte';
 
   let isNavigationDrawerOpen = true;
 

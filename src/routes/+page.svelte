@@ -3,13 +3,13 @@
   import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
   import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
+  import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Spinner } from 'flowbite-svelte';
   import { onMount } from 'svelte';
   import DeletePairGroupModal from './DeletePairGroupModal.svelte';
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
-  import { toasts } from './layoutStore';
   import SavePairGroupModal from './SavePairGroupModal.svelte';
   import UpdatePairGroupModal from './UpdatePairGroupModal.svelte';
 

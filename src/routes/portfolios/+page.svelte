@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { ViewPortfoliosResponse } from '$lib/business/interactors/view_portfolios/ViewPortfoliosResponse';
+  import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Spinner } from 'flowbite-svelte';
   import { onMount } from 'svelte';
-  import { toasts } from '../layoutStore';
   import EmptyView from './EmptyView.svelte';
+  import FilledView from './FilledView.svelte';
 
   type Tag = ViewPortfoliosResponse['portfolios'][0]['tag'];
   type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
@@ -65,10 +66,10 @@
   </div>
 {:else}
   <div class="h-full min-h-max w-full min-w-max overflow-auto p-24">
-    {#if true}
+    {#if false}
       <EmptyView {onSaveAssetOpen} />
     {:else}
-      <!-- PASS -->
+      <FilledView />
     {/if}
   </div>
 {/if}
