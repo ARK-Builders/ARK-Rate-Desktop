@@ -173,7 +173,7 @@
     bind:open={isOpen}
     size="xs"
     title="Add New Pair"
-    classDialog="absolute"
+    classDialog="absolute max-h-screen"
     on:close={onClose}
   >
     <div class="flex size-full items-center justify-center">
@@ -185,7 +185,7 @@
     bind:open={isOpen}
     size="xs"
     title="Add New Pair"
-    classDialog="absolute"
+    classDialog="absolute max-h-screen"
     on:close={onClose}
   >
     <form class="flex flex-col">

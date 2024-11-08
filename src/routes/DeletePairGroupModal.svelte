@@ -33,8 +33,9 @@
 </script>
 
 <Modal
-  size="xs"
   bind:open={isOpen}
+  size="xs"
+  classDialog="absolute max-h-screen"
   on:close={onClose}
 >
   <div class="text-center">
