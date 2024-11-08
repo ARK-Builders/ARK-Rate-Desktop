@@ -66,20 +66,6 @@
     ];
   };
 
-  onMount(() => {
-    pairGroup = {
-      id: crypto.randomUUID(),
-      multiplier: 1,
-      is_pinned: false,
-      pairs: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    addPair();
-    options = usdPairs.map((p) => p.comparison);
-    isLoading = false;
-  });
-
   const onBaseChange = (event: CustomEvent) => {
     const detail = event.detail;
     if (!detail) return;
@@ -166,6 +152,20 @@
       pairGroup.multiplier = multiplier;
     }
   };
+
+  onMount(() => {
+    pairGroup = {
+      id: crypto.randomUUID(),
+      multiplier: 1,
+      is_pinned: false,
+      pairs: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    addPair();
+    options = usdPairs.map((p) => p.comparison);
+    isLoading = false;
+  });
 </script>
 
 {#if isLoading || pairGroup.pairs.length < 1}

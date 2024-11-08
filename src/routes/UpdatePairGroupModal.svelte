@@ -66,11 +66,6 @@
     ];
   };
 
-  onMount(() => {
-    options = usdPairs.map((p) => p.comparison);
-    isLoading = false;
-  });
-
   const onBaseChange = (event: CustomEvent) => {
     const detail = event.detail;
     if (!detail) return;
@@ -157,6 +152,11 @@
       pairGroup.multiplier = multiplier;
     }
   };
+
+  onMount(() => {
+    options = usdPairs.map((p) => p.comparison);
+    isLoading = false;
+  });
 </script>
 
 {#if isLoading || pairGroup.pairs.length < 1}

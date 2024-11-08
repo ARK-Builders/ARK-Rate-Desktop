@@ -65,6 +65,10 @@
     isSavePairGroupOpen = true;
   };
 
+  const onSavePairGroupClose = () => {
+    isSavePairGroupOpen = false;
+  };
+
   const onPairGroupSave = (request: SavePairGroupRequest) => {
     isLoading = true;
     invoke('save_pair_group', { request: JSON.stringify(request) })
@@ -94,14 +98,6 @@
         isSavePairGroupOpen = false;
       });
   };
-
-  const onSavePairGroupClose = () => {
-    isSavePairGroupOpen = false;
-  };
-
-  onMount(() => {
-    loadPairGroups();
-  });
 
   const onPairGroupPinToggle = (pairGroup: PairGroup) => {
     isLoading = true;
@@ -221,6 +217,10 @@
         pairGroupToDelete = undefined;
       });
   };
+
+  onMount(() => {
+    loadPairGroups();
+  });
 </script>
 
 {#if isSavePairGroupOpen}
