@@ -18,11 +18,13 @@
 
   let isLoading = false;
   let isSavePairGroupOpen = false;
+
+  let pairGroupToUpdate: PairGroup | undefined;
+  let pairGroupToDelete: PairGroup | undefined;
+
   let usdPairs: USDPair[] = [];
   let pinnedPairGroups: PairGroup[] = [];
   let unpinnedPairGroups: PairGroup[] = [];
-  let pairGroupToUpdate: PairGroup | undefined;
-  let pairGroupToDelete: PairGroup | undefined;
 
   const loadPairGroups = () => {
     isLoading = true;
