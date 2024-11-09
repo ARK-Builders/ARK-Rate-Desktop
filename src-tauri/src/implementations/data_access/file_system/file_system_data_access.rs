@@ -140,6 +140,7 @@ async fn update_pair_group(
     return Ok(());
 }
 
+// TODO: should it ensure that all pairs exist?
 fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
     let dir = ensure_dir(root, PAIR_GROUPS_DIR_NAME)?;
     let path = dir.join(&pair_group.id);
