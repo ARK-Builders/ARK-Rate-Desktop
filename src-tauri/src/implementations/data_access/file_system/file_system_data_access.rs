@@ -141,9 +141,6 @@ async fn update_pair_group(
 }
 
 fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
-    for pair in &pair_group.pairs {
-        write_pair(root, pair)?;
-    }
     let dir = ensure_dir(root, PAIR_GROUPS_DIR_NAME)?;
     let path = dir.join(&pair_group.id);
     write_object_file(
@@ -155,23 +152,6 @@ fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
             pairs: pair_group.pairs.iter().map(|p| p.id.clone()).collect(),
             created_at: pair_group.created_at.clone(),
             updated_at: pair_group.updated_at.clone(),
-        },
-    )?;
-    return Ok(());
-}
-
-fn write_pair(root: &Path, pair: &Pair) -> Result<(), Error> {
-    let dir = ensure_dir(root, PAIRS_DIR_NAME)?;
-    let path = dir.join(&pair.id);
-    write_object_file(
-        &path,
-        &FileSystemPair {
-            id: pair.id.clone(),
-            base: pair.base.clone(),
-            value: pair.value.clone(),
-            comparison: pair.comparison.clone(),
-            created_at: pair.created_at.clone(),
-            updated_at: pair.updated_at.clone(),
         },
     )?;
     return Ok(());
@@ -193,9 +173,42 @@ where
 }
 
 impl SavePairGroupDataAccess for FileSystemDataAccess {
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return save_pair(&self, pair).await;
+    }
+
     async fn save_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
         return save_pair_group(&self, pair_group).await;
     }
+}
+
+async fn save_pair(data_access: &FileSystemDataAccess, pair: &Pair) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIRS_DIR_NAME)?;
+    let path = dir.join(&pair.id);
+    if path.exists() {
+        return Err(Error {
+            message: String::from("Pair to save already exists!"),
+        });
+    }
+    write_pair(&data_access.root, pair)?;
+    return Ok(());
+}
+
+fn write_pair(root: &Path, pair: &Pair) -> Result<(), Error> {
+    let dir = ensure_dir(root, PAIRS_DIR_NAME)?;
+    let path = dir.join(&pair.id);
+    write_object_file(
+        &path,
+        &FileSystemPair {
+            id: pair.id.clone(),
+            base: pair.base.clone(),
+            value: pair.value.clone(),
+            comparison: pair.comparison.clone(),
+            created_at: pair.created_at.clone(),
+            updated_at: pair.updated_at.clone(),
+        },
+    )?;
+    return Ok(());
 }
 
 async fn save_pair_group(

@@ -10,6 +10,7 @@ use crate::{
 use super::interactor::Interactor;
 
 pub trait SavePairGroupDataAccess {
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error>;
     async fn save_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error>;
 }
 
@@ -57,11 +58,7 @@ where
     DA: SavePairGroupDataAccess,
 {
     async fn perform(&mut self, request: SavePairGroupRequest) -> Result<(), Error> {
-        /*
-           TODO:
-               - Make sure all pairs have the same base.
-               - Make sure that there are no repeated pairs.
-        */
+        validate_request(&request)?;
         let pair_group = PairGroup {
             id: Uuid::new_v4().to_string(),
             is_pinned: request.pair_group.is_pinned,
@@ -82,9 +79,60 @@ where
             updated_at: Utc::now().to_rfc3339(),
             created_at: Utc::now().to_rfc3339(),
         };
+        for pair in &pair_group.pairs {
+            self.data_access.save_pair(pair).await?;
+        }
         self.data_access.save_pair_group(&pair_group).await?;
         return Ok(());
     }
+}
+
+fn validate_request(request: &SavePairGroupRequest) -> Result<(), Error> {
+    let pairs_len = request.pair_group.pairs.len();
+    if pairs_len == 0 {
+        return Err(Error {
+            message: String::from("Cannot save a pair group that does not have pairs!"),
+        });
+    }
+    if pairs_len > 1 {
+        validate_request_pair_bases(&request)?;
+        validate_request_duplicate_pairs(&request)?;
+    }
+    return Ok(());
+}
+
+fn validate_request_pair_bases(request: &SavePairGroupRequest) -> Result<(), Error> {
+    let pairs_len = request.pair_group.pairs.len();
+    let pair = &request.pair_group.pairs[0];
+    for i in 1..pairs_len {
+        let comparison_pair = &request.pair_group.pairs[i];
+        if pair.base != comparison_pair.base {
+            return Err(Error {
+                message: String::from(
+                    "Cannot save a pair group that contains pairs with different bases!",
+                ),
+            });
+        }
+    }
+    return Ok(());
+}
+
+fn validate_request_duplicate_pairs(request: &SavePairGroupRequest) -> Result<(), Error> {
+    let pairs_len = request.pair_group.pairs.len();
+    for i in 0..pairs_len - 1 {
+        let pair = &request.pair_group.pairs[i];
+        for j in 1..pairs_len {
+            let comparison_pair = &request.pair_group.pairs[j];
+            if pair.comparison == comparison_pair.comparison {
+                return Err(Error {
+                    message: String::from(
+                        "Cannot save a pair group that contains duplicate pairs!",
+                    ),
+                });
+            }
+        }
+    }
+    return Ok(());
 }
 
 #[cfg(test)]
