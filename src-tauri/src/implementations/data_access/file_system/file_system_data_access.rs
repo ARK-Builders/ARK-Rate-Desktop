@@ -220,31 +220,44 @@ impl UpdatePairGroupDataAccess for FileSystemDataAccess {
 }
 
 impl DeletePairGroupDataAccess for FileSystemDataAccess {
+    async fn find_pair_group(&mut self, id: &str) -> Result<Option<PairGroup>, Error> {
+        return find_pair_group(&self, id).await;
+    }
+
+    async fn delete_pair(&mut self, id: &str) -> Result<(), Error> {
+        return delete_pair(&self, id).await;
+    }
     async fn delete_pair_group(&mut self, id: &str) -> Result<(), Error> {
         return delete_pair_group(&self, id).await;
     }
 }
 
-async fn delete_pair_group(data_access: &FileSystemDataAccess, id: &str) -> Result<(), Error> {
-    let dir = ensure_dir(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+async fn find_pair_group(
+    data_access: &FileSystemDataAccess,
+    id: &str,
+) -> Result<Option<PairGroup>, Error> {
+    let entries = get_dir_entries(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(comparison_id) = file_name.to_str() {
+            if comparison_id == id {
+                let pair_group = read_pair_group(&data_access.root, id)?;
+                return Ok(Some(pair_group));
+            }
+        }
+    }
+    return Ok(None);
+}
+
+async fn delete_pair(data_access: &FileSystemDataAccess, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIRS_DIR_NAME)?;
     let path = dir.join(id);
     if !path.exists() {
         return Err(Error {
-            message: String::from("Pair group to delete does not exist!"),
+            message: String::from("Pair to delete does not exist!"),
         });
     }
-    remove_pair_group(&data_access.root, id)?;
-    return Ok(());
-}
-
-fn remove_pair_group(root: &Path, id: &str) -> Result<(), Error> {
-    let pair_group = read_pair_group(root, id)?;
-    for pair in &pair_group.pairs {
-        remove_pair(root, &pair.id)?;
-    }
-    let dir = ensure_dir(root, PAIR_GROUPS_DIR_NAME)?;
-    let path = dir.join(&pair_group.id);
-    remove_object_file(&path)?;
+    remove_pair(&data_access.root, id)?;
     return Ok(());
 }
 
@@ -259,6 +272,26 @@ fn remove_object_file(path: &Path) -> Result<(), Error> {
     remove_file(path).map_err(|e| Error {
         message: e.to_string(),
     })?;
+    return Ok(());
+}
+
+async fn delete_pair_group(data_access: &FileSystemDataAccess, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIR_GROUPS_DIR_NAME)?;
+    let path = dir.join(id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Pair group to delete does not exist!"),
+        });
+    }
+    remove_pair_group(&data_access.root, id)?;
+    return Ok(());
+}
+
+// TODO: possibly refactor those `remove_` functions to a single one, since they're all doing the same
+fn remove_pair_group(root: &Path, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(root, PAIR_GROUPS_DIR_NAME)?;
+    let path = dir.join(id);
+    remove_object_file(&path)?;
     return Ok(());
 }
 
