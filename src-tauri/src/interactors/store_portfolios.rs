@@ -70,16 +70,11 @@ async fn store_tagged_asset(
     data_access: &mut impl StorePortfoliosDataAccess,
     request: &StorePortfoliosRequest,
 ) -> Result<(), Error> {
-    if request.tag.is_none() {
-        return Err(Error {
-            message: String::from("Tag cannot be `None`!"),
-        });
-    }
     let request_tag = request.tag.clone().unwrap();
     let maybe_tag = data_access.find_tag(&request_tag.id).await?;
     if maybe_tag.is_none() {
         return Err(Error {
-            message: String::from("Could not find the request tag!"),
+            message: String::from("Tag not found!"),
         });
     }
     let mut tag = maybe_tag.unwrap();
