@@ -142,6 +142,7 @@ where
                     base: p.base.clone(),
                     value: p.value.clone(),
                     comparison: p.comparison.clone(),
+                    // TODO: should the data access really not handle the pairs save or update? Then the interactor handles the delete
                     created_at: Utc::now().to_rfc3339(), // this date will not matter, since the data access should not modify pair values, only the pair group
                     updated_at: Utc::now().to_rfc3339(),
                 })
