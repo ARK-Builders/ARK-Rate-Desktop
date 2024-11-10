@@ -1,5 +1,6 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     entities::{pair::Pair, pair_group::PairGroup},
@@ -86,7 +87,7 @@ where
             let maybe_pair = self.data_access.find_pair(&request_pair.id).await?;
             if maybe_pair.is_none() {
                 updated_pair_group.pairs.push(Pair {
-                    id: request_pair.id.clone(),
+                    id: Uuid::new_v4().to_string(),
                     base: request_pair.base.clone(),
                     value: request_pair.value.clone(),
                     comparison: request_pair.comparison.clone(),
