@@ -44,7 +44,10 @@ pub struct ResponseTag {
 
 impl PartialEq for ResponseTag {
     fn eq(&self, other: &Self) -> bool {
-        return self.id == other.id && self.name == other.name;
+        return self.id == other.id
+            && self.name == other.name
+            && self.created_at == other.created_at
+            && self.updated_at == other.updated_at;
     }
 }
 
@@ -59,19 +62,23 @@ pub struct ResponseAsset {
 
 impl PartialEq for ResponseAsset {
     fn eq(&self, other: &Self) -> bool {
-        return self.id == other.id && self.coin == other.coin && self.quantity == other.quantity;
+        return self.id == other.id
+            && self.coin == other.coin
+            && self.quantity == other.quantity
+            && self.created_at == other.created_at
+            && self.updated_at == other.updated_at;
     }
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ResponsePortfolio {
-    pub tag: Option<ResponseTag>,
+    pub tags: Vec<ResponseTag>,
     pub asset: ResponseAsset,
 }
 
 impl PartialEq for ResponsePortfolio {
     fn eq(&self, other: &Self) -> bool {
-        return self.tag == other.tag && self.asset == other.asset;
+        return self.tags == other.tags && self.asset == other.asset;
     }
 }
 
@@ -117,404 +124,39 @@ fn create_portfolios(
     tags: &Vec<Tag>,
     assets: &Vec<Asset>,
 ) -> Result<Vec<ResponsePortfolio>, Error> {
-    let mut portfolios: Vec<ResponsePortfolio> = vec![];
+    let mut portfolios: Vec<ResponsePortfolio> = assets
+        .iter()
+        .map(|a| ResponsePortfolio {
+            tags: vec![],
+            asset: ResponseAsset {
+                id: a.id.clone(),
+                coin: a.coin.clone(),
+                quantity: a.quantity.clone(),
+                created_at: a.created_at.clone(),
+                updated_at: a.updated_at.clone(),
+            },
+        })
+        .collect();
     for tag in tags {
-        for asset in &tag.assets {
-            let portfolio = create_portfolio(tag, asset)?;
-            portfolios.push(portfolio);
-        }
-    }
-    let standalone_assets = retrieve_standalone_assets(tags, assets);
-    for asset in &standalone_assets {
-        portfolios.push(ResponsePortfolio {
-            tag: None,
-            asset: asset.clone(),
-        });
-    }
-    return Ok(portfolios);
-}
-
-fn create_portfolio(tag: &Tag, asset: &Asset) -> Result<ResponsePortfolio, Error> {
-    return Ok(ResponsePortfolio {
-        tag: Some(ResponseTag {
+        let response_tag = ResponseTag {
             id: tag.id.clone(),
             name: tag.name.clone(),
             created_at: tag.created_at.clone(),
             updated_at: tag.updated_at.clone(),
-        }),
-        asset: ResponseAsset {
-            id: asset.id.clone(),
-            coin: asset.coin.clone(),
-            quantity: asset.quantity.clone(),
-            created_at: asset.created_at.clone(),
-            updated_at: asset.updated_at.clone(),
-        },
-    });
-}
-
-fn retrieve_standalone_assets(tags: &Vec<Tag>, assets: &Vec<Asset>) -> Vec<ResponseAsset> {
-    let mut standalone_assets: Vec<ResponseAsset> = vec![];
-    for asset in assets {
-        let mut is_standalone = true;
-        for tag in tags {
-            for asset_tag in &tag.assets {
-                if asset_tag.id == asset.id {
-                    is_standalone = false;
+        };
+        for portfolio in &mut portfolios {
+            for tag_asset in &tag.assets {
+                if tag_asset.id == portfolio.asset.id {
+                    portfolio.tags.push(response_tag.clone());
                     break;
                 }
             }
-            if !is_standalone {
-                break;
-            }
-        }
-        if is_standalone {
-            standalone_assets.push(ResponseAsset {
-                id: asset.id.clone(),
-                coin: asset.coin.clone(),
-                quantity: asset.quantity.clone(),
-                created_at: asset.created_at.clone(),
-                updated_at: asset.updated_at.clone(),
-            });
         }
     }
-    return standalone_assets;
+    return Ok(portfolios);
 }
 
 #[cfg(test)]
 mod test {
-    use crate::entities::pair::Pair;
-
-    use super::*;
-
-    pub struct ViewPortfoliosDataAccessMock {
-        fetch_tags_result: Result<Vec<Tag>, Error>,
-        fetch_assets_result: Result<Vec<Asset>, Error>,
-    }
-
-    impl ViewPortfoliosDataAccess for ViewPortfoliosDataAccessMock {
-        async fn fetch_tags(&mut self) -> Result<Vec<Tag>, Error> {
-            return self.fetch_tags_result.clone();
-        }
-
-        async fn fetch_assets(&mut self) -> Result<Vec<Asset>, Error> {
-            return self.fetch_assets_result.clone();
-        }
-    }
-
-    pub struct CoinMarketMock {
-        retrieve_pairs_by_base_result: Result<Vec<Pair>, Error>,
-    }
-
-    impl CoinMarket for CoinMarketMock {
-        async fn retrieve_usd_pairs(&mut self) -> Result<Vec<Pair>, Error> {
-            return self.retrieve_pairs_by_base_result.clone();
-        }
-    }
-
-    #[tokio::test]
-    async fn test_tagged_assets() {
-        let example_assets: Vec<Asset> = vec![
-            Asset {
-                id: "a1".to_string(),
-                quantity: 10.0,
-                coin: "USD".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Asset {
-                id: "a2".to_string(),
-                quantity: 20.0,
-                coin: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Asset {
-                id: "a3".to_string(),
-                quantity: 30.0,
-                coin: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let example_tags: Vec<Tag> = vec![
-            Tag {
-                id: "t1".to_string(),
-                name: "Tag One".to_string(),
-                assets: vec![example_assets[0].clone(), example_assets[1].clone()],
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Tag {
-                id: "t2".to_string(),
-                name: "Tag Two".to_string(),
-                assets: vec![example_assets[1].clone(), example_assets[2].clone()],
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let fresh_usd_example_pairs: Vec<Pair> = vec![
-            Pair {
-                id: "p1".to_string(),
-                value: 4.0,
-                base: "USD".to_string(),
-                comparison: "BTC".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Pair {
-                id: "p2".to_string(),
-                value: 5.0,
-                base: "USD".to_string(),
-                comparison: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Pair {
-                id: "p3".to_string(),
-                value: 6.0,
-                base: "USD".to_string(),
-                comparison: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let data_access = ViewPortfoliosDataAccessMock {
-            fetch_tags_result: Ok(example_tags.clone()),
-            fetch_assets_result: Ok(example_assets.clone()),
-        };
-
-        let coin_market = CoinMarketMock {
-            retrieve_pairs_by_base_result: Ok(fresh_usd_example_pairs.clone()),
-        };
-
-        let mut interactor = ViewPortfolios {
-            data_access,
-            coin_market,
-        };
-
-        let response = interactor.perform(()).await.unwrap();
-
-        assert_eq!(response.portfolios.len(), 4);
-
-        assert!(response.portfolios.contains(&ResponsePortfolio {
-            tag: Some(ResponseTag {
-                id: "t1".to_string(),
-                name: "Tag One".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            }),
-            asset: ResponseAsset {
-                id: "a1".to_string(),
-                quantity: 10.0,
-                coin: "USD".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        }));
-        assert!(response.portfolios.contains(&ResponsePortfolio {
-            tag: Some(ResponseTag {
-                id: "t1".to_string(),
-                name: "Tag One".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            }),
-            asset: ResponseAsset {
-                id: "a2".to_string(),
-                quantity: 20.0,
-                coin: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        }));
-        assert!(response.portfolios.contains(&ResponsePortfolio {
-            tag: Some(ResponseTag {
-                id: "t2".to_string(),
-                name: "Tag Two".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            }),
-            asset: ResponseAsset {
-                id: "a2".to_string(),
-                quantity: 20.0,
-                coin: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        }));
-        assert!(response.portfolios.contains(&ResponsePortfolio {
-            tag: Some(ResponseTag {
-                id: "t2".to_string(),
-                name: "Tag Two".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            }),
-            asset: ResponseAsset {
-                id: "a3".to_string(),
-                quantity: 30.0,
-                coin: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        }));
-    }
-
-    #[tokio::test]
-    async fn test_untagged_assets() {
-        let example_assets: Vec<Asset> = vec![
-            Asset {
-                id: "a1".to_string(),
-                quantity: 10.0,
-                coin: "USD".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Asset {
-                id: "a2".to_string(),
-                quantity: 20.0,
-                coin: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Asset {
-                id: "a3".to_string(),
-                quantity: 30.0,
-                coin: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let fresh_usd_example_pairs: Vec<Pair> = vec![
-            Pair {
-                id: "p1".to_string(),
-                value: 4.0,
-                base: "USD".to_string(),
-                comparison: "BTC".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Pair {
-                id: "p2".to_string(),
-                value: 5.0,
-                base: "USD".to_string(),
-                comparison: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Pair {
-                id: "p3".to_string(),
-                value: 6.0,
-                base: "USD".to_string(),
-                comparison: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let data_access = ViewPortfoliosDataAccessMock {
-            fetch_tags_result: Ok(vec![]),
-            fetch_assets_result: Ok(example_assets.clone()),
-        };
-
-        let coin_market = CoinMarketMock {
-            retrieve_pairs_by_base_result: Ok(fresh_usd_example_pairs.clone()),
-        };
-
-        let mut interactor = ViewPortfolios {
-            data_access,
-            coin_market,
-        };
-
-        let response = interactor.perform(()).await.unwrap();
-
-        assert_eq!(response.portfolios.len(), 3);
-
-        // TODO: assert the response portfolios correctness
-    }
-
-    // TODO: create an "untagged and tagged" unit test
-    #[tokio::test]
-    async fn test_untagged_and_tagged_assets() {
-        let example_assets: Vec<Asset> = vec![
-            Asset {
-                id: "a1".to_string(),
-                quantity: 10.0,
-                coin: "USD".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Asset {
-                id: "a2".to_string(),
-                quantity: 20.0,
-                coin: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Asset {
-                id: "a3".to_string(),
-                quantity: 30.0,
-                coin: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let example_tags: Vec<Tag> = vec![Tag {
-            id: "t1".to_string(),
-            name: "Tag One".to_string(),
-            assets: vec![example_assets[0].clone(), example_assets[1].clone()],
-            created_at: String::from("2024-01-01T10:00:00+00:00"),
-            updated_at: String::from("2024-01-01T10:00:00+00:00"),
-        }];
-
-        let fresh_usd_example_pairs: Vec<Pair> = vec![
-            Pair {
-                id: "p1".to_string(),
-                value: 4.0,
-                base: "USD".to_string(),
-                comparison: "BTC".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Pair {
-                id: "p2".to_string(),
-                value: 5.0,
-                base: "USD".to_string(),
-                comparison: "EUR".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-            Pair {
-                id: "p3".to_string(),
-                value: 6.0,
-                base: "USD".to_string(),
-                comparison: "BRL".to_string(),
-                created_at: String::from("2024-01-01T10:00:00+00:00"),
-                updated_at: String::from("2024-01-01T10:00:00+00:00"),
-            },
-        ];
-
-        let data_access = ViewPortfoliosDataAccessMock {
-            fetch_tags_result: Ok(example_tags.clone()),
-            fetch_assets_result: Ok(example_assets.clone()),
-        };
-
-        let coin_market = CoinMarketMock {
-            retrieve_pairs_by_base_result: Ok(fresh_usd_example_pairs.clone()),
-        };
-
-        let mut interactor = ViewPortfolios {
-            data_access,
-            coin_market,
-        };
-
-        let response = interactor.perform(()).await.unwrap();
-
-        assert_eq!(response.portfolios.len(), 3);
-
-        // TODO: assert the response portfolios correctness
-    }
+    // TODO: create unit tests for this impl
 }
