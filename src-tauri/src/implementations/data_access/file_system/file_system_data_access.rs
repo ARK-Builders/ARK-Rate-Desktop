@@ -11,8 +11,8 @@ use crate::{
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
         delete_pair_group::DeletePairGroupDataAccess, save_pair_group::SavePairGroupDataAccess,
-        update_pair_group::UpdatePairGroupDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
-        view_portfolios::ViewPortfoliosDataAccess,
+        store_portfolios::StorePortfoliosDataAccess, update_pair_group::UpdatePairGroupDataAccess,
+        view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
     },
     Error,
 };
@@ -386,6 +386,93 @@ async fn fetch_assets(data_access: &FileSystemDataAccess) -> Result<Vec<Asset>, 
         }
     }
     return Ok(assets);
+}
+
+impl StorePortfoliosDataAccess for FileSystemDataAccess {
+    async fn find_tag(&mut self, id: &str) -> Result<Option<Tag>, Error> {
+        return find_tag(&self, id).await;
+    }
+
+    async fn update_tag(&mut self, tag: &Tag) -> Result<(), Error> {
+        return update_tag(&self, tag).await;
+    }
+
+    async fn save_asset(&mut self, asset: &Asset) -> Result<(), Error> {
+        return save_asset(&self, asset).await;
+    }
+}
+
+async fn find_tag(data_access: &FileSystemDataAccess, id: &str) -> Result<Option<Tag>, Error> {
+    let entries = get_dir_entries(&data_access.root, TAGS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(comparison_id) = file_name.to_str() {
+            if comparison_id == id {
+                let tag = read_tag(&data_access.root, id)?;
+                return Ok(Some(tag));
+            }
+        }
+    }
+    return Ok(None);
+}
+
+async fn update_tag(data_access: &FileSystemDataAccess, tag: &Tag) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, TAGS_DIR_NAME)?;
+    let path = dir.join(&tag.id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Tag to update does not exist!"),
+        });
+    }
+    write_tag(&data_access.root, tag)?;
+    return Ok(());
+}
+
+fn write_tag(root: &Path, tag: &Tag) -> Result<(), Error> {
+    for asset in &tag.assets {
+        write_asset(root, asset)?;
+    }
+    let dir = ensure_dir(root, TAGS_DIR_NAME)?;
+    let path = dir.join(&tag.id);
+    write_object_file(
+        &path,
+        &FileSystemTag {
+            id: tag.id.clone(),
+            name: tag.name.clone(),
+            assets: tag.assets.iter().map(|a| a.id.clone()).collect(),
+            created_at: tag.created_at.clone(),
+            updated_at: tag.updated_at.clone(),
+        },
+    )?;
+    return Ok(());
+}
+
+fn write_asset(root: &Path, asset: &Asset) -> Result<(), Error> {
+    let dir = ensure_dir(root, ASSETS_DIR_NAME)?;
+    let path = dir.join(&asset.id);
+    write_object_file(
+        &path,
+        &FileSystemAsset {
+            id: asset.id.clone(),
+            coin: asset.coin.clone(),
+            quantity: asset.quantity.clone(),
+            created_at: asset.created_at.clone(),
+            updated_at: asset.updated_at.clone(),
+        },
+    )?;
+    return Ok(());
+}
+
+async fn save_asset(data_access: &FileSystemDataAccess, asset: &Asset) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, ASSETS_DIR_NAME)?;
+    let path = dir.join(&asset.id);
+    if path.exists() {
+        return Err(Error {
+            message: String::from("Asset to save already exists!"),
+        });
+    }
+    write_asset(&data_access.root, asset)?;
+    return Ok(());
 }
 
 #[cfg(test)]
