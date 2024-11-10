@@ -86,6 +86,7 @@ async fn store_tagged_assets(
             created_at: Utc::now().to_rfc3339(),
             updated_at: Utc::now().to_rfc3339(),
         };
+        data_access.save_asset(&asset).await?;
         tag.assets.push(asset);
     }
     return data_access.update_tag(&tag).await;

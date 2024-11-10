@@ -12,6 +12,8 @@ use super::interactor::Interactor;
 pub trait UpdatePairGroupDataAccess {
     async fn find_pair(&mut self, id: &str) -> Result<Option<Pair>, Error>;
     async fn delete_pair(&mut self, id: &str) -> Result<(), Error>;
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error>;
+    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error>;
     async fn find_pair_group(&mut self, id: &str) -> Result<Option<PairGroup>, Error>;
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error>;
 }
@@ -83,17 +85,24 @@ where
             created_at: pair_group.created_at.clone(),
             updated_at: Utc::now().to_rfc3339(),
         };
+
+        let mut added_pairs: Vec<Pair> = vec![];
+        let mut updated_pairs: Vec<Pair> = vec![];
+        let mut removed_pairs: Vec<Pair> = vec![];
+
         for request_pair in &request.pair_group.pairs {
             let maybe_pair = self.data_access.find_pair(&request_pair.id).await?;
             if maybe_pair.is_none() {
-                updated_pair_group.pairs.push(Pair {
+                let pair = Pair {
                     id: Uuid::new_v4().to_string(),
                     base: request_pair.base.clone(),
                     value: request_pair.value.clone(),
                     comparison: request_pair.comparison.clone(),
                     created_at: Utc::now().to_rfc3339(),
                     updated_at: Utc::now().to_rfc3339(),
-                });
+                };
+                added_pairs.push(pair.clone());
+                updated_pair_group.pairs.push(pair);
                 continue;
             }
             let pair = maybe_pair.unwrap();
@@ -102,15 +111,18 @@ where
                     message: String::from("Cannot borrow pairs from other pair groups!"),
                 });
             }
-            updated_pair_group.pairs.push(Pair {
+            let updated_pair = Pair {
                 id: request_pair.id.clone(),
                 base: request_pair.base.clone(),
                 value: request_pair.value.clone(),
                 comparison: request_pair.comparison.clone(),
                 created_at: pair_group.created_at.clone(),
                 updated_at: Utc::now().to_rfc3339(),
-            });
+            };
+            updated_pairs.push(updated_pair.clone());
+            updated_pair_group.pairs.push(updated_pair);
         }
+
         for pair in &pair_group.pairs {
             let mut is_removed = true;
             for request_pair in &request.pair_group.pairs {
@@ -120,9 +132,20 @@ where
                 }
             }
             if is_removed {
-                self.data_access.delete_pair(&pair.id).await?;
+                removed_pairs.push(pair.clone());
             }
         }
+
+        for pair in &added_pairs {
+            self.data_access.save_pair(pair).await?;
+        }
+        for pair in &updated_pairs {
+            self.data_access.update_pair(pair).await?;
+        }
+        for pair in &removed_pairs {
+            self.data_access.delete_pair(&pair.id).await?;
+        }
+
         self.data_access
             .update_pair_group(&updated_pair_group)
             .await?;

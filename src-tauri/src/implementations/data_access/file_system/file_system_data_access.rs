@@ -33,6 +33,10 @@ pub struct FileSystemDataAccess {
 }
 
 impl ViewPairGroupsDataAccess for FileSystemDataAccess {
+    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return update_pair(&self, pair).await;
+    }
+
     async fn fetch_pair_groups(&mut self) -> Result<Vec<PairGroup>, Error> {
         return fetch_pair_groups(&self).await;
     }
@@ -40,6 +44,56 @@ impl ViewPairGroupsDataAccess for FileSystemDataAccess {
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
         return update_pair_group(&self, pair_group).await;
     }
+}
+
+async fn update_pair(data_access: &FileSystemDataAccess, pair: &Pair) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIRS_DIR_NAME)?;
+    let path = dir.join(&pair.id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Pair to update does not exist!"),
+        });
+    }
+    write_pair(&data_access.root, pair)?;
+    return Ok(());
+}
+
+fn ensure_dir(root: &Path, name: &str) -> Result<PathBuf, Error> {
+    let dir = root.join(name);
+    create_dir_all(&dir).expect("Could not create database directory!");
+    return Ok(dir);
+}
+
+fn write_pair(root: &Path, pair: &Pair) -> Result<(), Error> {
+    let dir = ensure_dir(root, PAIRS_DIR_NAME)?;
+    let path = dir.join(&pair.id);
+    write_object_file(
+        &path,
+        &FileSystemPair {
+            id: pair.id.clone(),
+            base: pair.base.clone(),
+            value: pair.value.clone(),
+            comparison: pair.comparison.clone(),
+            created_at: pair.created_at.clone(),
+            updated_at: pair.updated_at.clone(),
+        },
+    )?;
+    return Ok(());
+}
+
+fn write_object_file<T>(path: &Path, object: &T) -> Result<(), Error>
+where
+    T: for<'a> Serialize,
+{
+    let object_contents = serde_json::to_string(object).map_err(|e| Error {
+        message: e.to_string(),
+    })?;
+    File::create(path)
+        .and_then(|mut file| file.write_all(object_contents.as_bytes()))
+        .map_err(|e| Error {
+            message: e.to_string(),
+        })?;
+    return Ok(());
 }
 
 async fn fetch_pair_groups(data_access: &FileSystemDataAccess) -> Result<Vec<PairGroup>, Error> {
@@ -68,12 +122,6 @@ fn get_dir_entries(root: &Path, name: &str) -> Result<Vec<DirEntry>, Error> {
         dir_entries.push(dir_entry);
     }
     return Ok(dir_entries);
-}
-
-fn ensure_dir(root: &Path, name: &str) -> Result<PathBuf, Error> {
-    let dir = root.join(name);
-    create_dir_all(&dir).expect("Could not create database directory!");
-    return Ok(dir);
 }
 
 fn read_pair_group(root: &Path, id: &str) -> Result<PairGroup, Error> {
@@ -142,9 +190,6 @@ async fn update_pair_group(
 }
 
 fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
-    for pair in &pair_group.pairs {
-        write_pair(root, pair)?;
-    }
     let dir = ensure_dir(root, PAIR_GROUPS_DIR_NAME)?;
     let path = dir.join(&pair_group.id);
     write_object_file(
@@ -161,42 +206,26 @@ fn write_pair_group(root: &Path, pair_group: &PairGroup) -> Result<(), Error> {
     return Ok(());
 }
 
-fn write_pair(root: &Path, pair: &Pair) -> Result<(), Error> {
-    let dir = ensure_dir(root, PAIRS_DIR_NAME)?;
-    let path = dir.join(&pair.id);
-    write_object_file(
-        &path,
-        &FileSystemPair {
-            id: pair.id.clone(),
-            base: pair.base.clone(),
-            value: pair.value.clone(),
-            comparison: pair.comparison.clone(),
-            created_at: pair.created_at.clone(),
-            updated_at: pair.updated_at.clone(),
-        },
-    )?;
-    return Ok(());
-}
-
-fn write_object_file<T>(path: &Path, object: &T) -> Result<(), Error>
-where
-    T: for<'a> Serialize,
-{
-    let object_contents = serde_json::to_string(object).map_err(|e| Error {
-        message: e.to_string(),
-    })?;
-    File::create(path)
-        .and_then(|mut file| file.write_all(object_contents.as_bytes()))
-        .map_err(|e| Error {
-            message: e.to_string(),
-        })?;
-    return Ok(());
-}
-
 impl SavePairGroupDataAccess for FileSystemDataAccess {
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return save_pair(&self, pair).await;
+    }
+
     async fn save_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
         return save_pair_group(&self, pair_group).await;
     }
+}
+
+async fn save_pair(data_access: &FileSystemDataAccess, pair: &Pair) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIRS_DIR_NAME)?;
+    let path = dir.join(&pair.id);
+    if path.exists() {
+        return Err(Error {
+            message: String::from("Pair to save already exists!"),
+        });
+    }
+    write_pair(&data_access.root, pair)?;
+    return Ok(());
 }
 
 async fn save_pair_group(
@@ -221,6 +250,14 @@ impl UpdatePairGroupDataAccess for FileSystemDataAccess {
 
     async fn delete_pair(&mut self, id: &str) -> Result<(), Error> {
         return delete_pair(&self, id).await;
+    }
+
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return save_pair(&self, pair).await;
+    }
+
+    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return update_pair(&self, pair).await;
     }
 
     async fn find_pair_group(&mut self, id: &str) -> Result<Option<PairGroup>, Error> {
@@ -431,9 +468,6 @@ async fn update_tag(data_access: &FileSystemDataAccess, tag: &Tag) -> Result<(),
 }
 
 fn write_tag(root: &Path, tag: &Tag) -> Result<(), Error> {
-    for asset in &tag.assets {
-        write_asset(root, asset)?;
-    }
     let dir = ensure_dir(root, TAGS_DIR_NAME)?;
     let path = dir.join(&tag.id);
     write_object_file(
