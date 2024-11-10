@@ -42,14 +42,14 @@ where
 {
     async fn perform(&mut self, request: StorePortfoliosRequest) -> Result<(), Error> {
         if request.tag.is_none() {
-            return store_asset(&mut self.data_access, &request).await;
+            return store_assets(&mut self.data_access, &request).await;
         } else {
-            return store_tagged_asset(&mut self.data_access, &request).await;
+            return store_tagged_assets(&mut self.data_access, &request).await;
         }
     }
 }
 
-async fn store_asset(
+async fn store_assets(
     data_access: &mut impl StorePortfoliosDataAccess,
     request: &StorePortfoliosRequest,
 ) -> Result<(), Error> {
@@ -66,7 +66,7 @@ async fn store_asset(
     return Ok(());
 }
 
-async fn store_tagged_asset(
+async fn store_tagged_assets(
     data_access: &mut impl StorePortfoliosDataAccess,
     request: &StorePortfoliosRequest,
 ) -> Result<(), Error> {
