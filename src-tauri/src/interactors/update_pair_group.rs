@@ -11,8 +11,6 @@ use super::interactor::Interactor;
 pub trait UpdatePairGroupDataAccess {
     async fn find_pair(&mut self, id: &str) -> Result<Option<Pair>, Error>;
     async fn delete_pair(&mut self, id: &str) -> Result<(), Error>;
-    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error>;
-    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error>;
     async fn find_pair_group(&mut self, id: &str) -> Result<Option<PairGroup>, Error>;
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error>;
 }
@@ -76,12 +74,18 @@ where
             });
         }
         let pair_group = maybe_pair_group.unwrap();
-        let mut added_pairs: Vec<Pair> = vec![];
-        let mut updated_pairs: Vec<Pair> = vec![];
+        let mut updated_pair_group = PairGroup {
+            id: request.pair_group.id,
+            is_pinned: request.pair_group.is_pinned,
+            multiplier: request.pair_group.multiplier,
+            pairs: vec![],
+            created_at: pair_group.created_at.clone(),
+            updated_at: Utc::now().to_rfc3339(),
+        };
         for request_pair in &request.pair_group.pairs {
             let maybe_pair = self.data_access.find_pair(&request_pair.id).await?;
             if maybe_pair.is_none() {
-                added_pairs.push(Pair {
+                updated_pair_group.pairs.push(Pair {
                     id: request_pair.id.clone(),
                     base: request_pair.base.clone(),
                     value: request_pair.value.clone(),
@@ -92,22 +96,20 @@ where
                 continue;
             }
             let pair = maybe_pair.unwrap();
-            if pair_group.pairs.contains(&pair) {
-                updated_pairs.push(Pair {
-                    id: request_pair.id.clone(),
-                    base: request_pair.base.clone(),
-                    value: request_pair.value.clone(),
-                    comparison: request_pair.comparison.clone(),
-                    created_at: pair_group.created_at.clone(),
-                    updated_at: Utc::now().to_rfc3339(),
-                });
-            } else {
+            if !pair_group.pairs.contains(&pair) {
                 return Err(Error {
                     message: String::from("Cannot borrow pairs from other pair groups!"),
                 });
             }
+            updated_pair_group.pairs.push(Pair {
+                id: request_pair.id.clone(),
+                base: request_pair.base.clone(),
+                value: request_pair.value.clone(),
+                comparison: request_pair.comparison.clone(),
+                created_at: pair_group.created_at.clone(),
+                updated_at: Utc::now().to_rfc3339(),
+            });
         }
-        let mut removed_pairs: Vec<Pair> = vec![];
         for pair in &pair_group.pairs {
             let mut is_removed = true;
             for request_pair in &request.pair_group.pairs {
@@ -117,39 +119,9 @@ where
                 }
             }
             if is_removed {
-                removed_pairs.push(pair.clone());
+                self.data_access.delete_pair(&pair.id).await?;
             }
         }
-        for pair in &added_pairs {
-            self.data_access.save_pair(pair).await?;
-        }
-        for pair in &updated_pairs {
-            self.data_access.update_pair(pair).await?;
-        }
-        for pair in &removed_pairs {
-            self.data_access.delete_pair(&pair.id).await?;
-        }
-        let updated_pair_group = PairGroup {
-            id: request.pair_group.id,
-            is_pinned: request.pair_group.is_pinned,
-            multiplier: request.pair_group.multiplier,
-            pairs: request
-                .pair_group
-                .pairs
-                .iter()
-                .map(|p| Pair {
-                    id: p.id.clone(),
-                    base: p.base.clone(),
-                    value: p.value.clone(),
-                    comparison: p.comparison.clone(),
-                    // TODO: should the data access really not handle the pairs save or update? Then the interactor handles the delete
-                    created_at: Utc::now().to_rfc3339(), // this date will not matter, since the data access should not modify pair values, only the pair group
-                    updated_at: Utc::now().to_rfc3339(),
-                })
-                .collect(),
-            updated_at: Utc::now().to_rfc3339(),
-            created_at: Utc::now().to_rfc3339(),
-        };
         self.data_access
             .update_pair_group(&updated_pair_group)
             .await?;

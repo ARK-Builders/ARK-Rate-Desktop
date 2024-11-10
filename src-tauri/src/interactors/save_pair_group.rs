@@ -10,7 +10,6 @@ use crate::{
 use super::interactor::Interactor;
 
 pub trait SavePairGroupDataAccess {
-    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error>;
     async fn save_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error>;
 }
 
@@ -79,9 +78,6 @@ where
             updated_at: Utc::now().to_rfc3339(),
             created_at: Utc::now().to_rfc3339(),
         };
-        for pair in &pair_group.pairs {
-            self.data_access.save_pair(pair).await?;
-        }
         self.data_access.save_pair_group(&pair_group).await?;
         return Ok(());
     }
