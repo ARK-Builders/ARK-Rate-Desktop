@@ -228,9 +228,55 @@ async fn save_pair_group(
 }
 
 impl UpdatePairGroupDataAccess for FileSystemDataAccess {
+    async fn find_pair(&mut self, id: &str) -> Result<Option<Pair>, Error> {
+        return find_pair(&self, id).await;
+    }
+
+    async fn delete_pair(&mut self, id: &str) -> Result<(), Error> {
+        return delete_pair(&self, id).await;
+    }
+
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return save_pair(&self, pair).await;
+    }
+
+    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return update_pair(&self, pair).await;
+    }
+
+    async fn find_pair_group(&mut self, id: &str) -> Result<Option<PairGroup>, Error> {
+        return find_pair_group(&self, id).await;
+    }
+
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error> {
         return update_pair_group(&self, pair_group).await;
     }
+}
+
+async fn find_pair(data_access: &FileSystemDataAccess, id: &str) -> Result<Option<Pair>, Error> {
+    let entries = get_dir_entries(&data_access.root, PAIRS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(comparison_id) = file_name.to_str() {
+            if comparison_id == id {
+                let pair = read_pair(&data_access.root, id)?;
+                return Ok(Some(pair));
+            }
+        }
+    }
+    return Ok(None);
+}
+
+async fn update_pair(data_access: &FileSystemDataAccess, pair: &Pair) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, PAIRS_DIR_NAME)?;
+    let path = dir.join(&pair.id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Pair to update does not exist!"),
+        });
+    }
+    write_pair(&data_access.root, pair)?;
+    return Ok(());
 }
 
 impl DeletePairGroupDataAccess for FileSystemDataAccess {

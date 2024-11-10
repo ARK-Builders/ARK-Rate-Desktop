@@ -9,6 +9,11 @@ use crate::{
 use super::interactor::Interactor;
 
 pub trait UpdatePairGroupDataAccess {
+    async fn find_pair(&mut self, id: &str) -> Result<Option<Pair>, Error>;
+    async fn delete_pair(&mut self, id: &str) -> Result<(), Error>;
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error>;
+    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error>;
+    async fn find_pair_group(&mut self, id: &str) -> Result<Option<PairGroup>, Error>;
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error>;
 }
 
@@ -60,15 +65,71 @@ where
     DA: UpdatePairGroupDataAccess,
 {
     async fn perform(&mut self, request: UpdatePairGroupRequest) -> Result<(), Error> {
-        /*
-           TODO:
-               - Make sure all pairs have the same base.
-               - Make sure that there are no repeated pairs.
-               - Make sure that the pair group exists.
-               - Make sure that the it is not borrowing pairs from other pair group
-               - Get the correct 'created_date's for the pair and pair group
-        */
-        let pair_group = PairGroup {
+        validate_request(&request)?;
+        let maybe_pair_group = self
+            .data_access
+            .find_pair_group(&request.pair_group.id)
+            .await?;
+        if maybe_pair_group.is_none() {
+            return Err(Error {
+                message: String::from("Pair group to update does not exist!"),
+            });
+        }
+        let pair_group = maybe_pair_group.unwrap();
+        let mut added_pairs: Vec<Pair> = vec![];
+        let mut updated_pairs: Vec<Pair> = vec![];
+        for request_pair in &request.pair_group.pairs {
+            let maybe_pair = self.data_access.find_pair(&request_pair.id).await?;
+            if maybe_pair.is_none() {
+                added_pairs.push(Pair {
+                    id: request_pair.id.clone(),
+                    base: request_pair.base.clone(),
+                    value: request_pair.value.clone(),
+                    comparison: request_pair.comparison.clone(),
+                    created_at: Utc::now().to_rfc3339(),
+                    updated_at: Utc::now().to_rfc3339(),
+                });
+                continue;
+            }
+            let pair = maybe_pair.unwrap();
+            if pair_group.pairs.contains(&pair) {
+                updated_pairs.push(Pair {
+                    id: request_pair.id.clone(),
+                    base: request_pair.base.clone(),
+                    value: request_pair.value.clone(),
+                    comparison: request_pair.comparison.clone(),
+                    created_at: pair_group.created_at.clone(),
+                    updated_at: Utc::now().to_rfc3339(),
+                });
+            } else {
+                return Err(Error {
+                    message: String::from("Cannot borrow pairs from other pair groups!"),
+                });
+            }
+        }
+        let mut removed_pairs: Vec<Pair> = vec![];
+        for pair in &pair_group.pairs {
+            let mut is_removed = true;
+            for request_pair in &request.pair_group.pairs {
+                if request_pair.id == pair.id {
+                    is_removed = false;
+                    break;
+                }
+            }
+            if is_removed {
+                removed_pairs.push(pair.clone());
+            }
+        }
+        for pair in &added_pairs {
+            self.data_access.save_pair(pair).await?;
+        }
+        for pair in &updated_pairs {
+            self.data_access.update_pair(pair).await?;
+        }
+        for pair in &removed_pairs {
+            self.data_access.delete_pair(&pair.id).await?;
+        }
+        let updated_pair_group = PairGroup {
             id: request.pair_group.id,
             is_pinned: request.pair_group.is_pinned,
             multiplier: request.pair_group.multiplier,
@@ -81,16 +142,66 @@ where
                     base: p.base.clone(),
                     value: p.value.clone(),
                     comparison: p.comparison.clone(),
-                    created_at: Utc::now().to_rfc3339(),
+                    created_at: Utc::now().to_rfc3339(), // this date will not matter, since the data access should not modify pair values, only the pair group
                     updated_at: Utc::now().to_rfc3339(),
                 })
                 .collect(),
             updated_at: Utc::now().to_rfc3339(),
             created_at: Utc::now().to_rfc3339(),
         };
-        self.data_access.update_pair_group(&pair_group).await?;
+        self.data_access
+            .update_pair_group(&updated_pair_group)
+            .await?;
         return Ok(());
     }
+}
+
+fn validate_request(request: &UpdatePairGroupRequest) -> Result<(), Error> {
+    let pairs_len = request.pair_group.pairs.len();
+    if pairs_len == 0 {
+        return Err(Error {
+            message: String::from("Cannot update a pair group that does not have pairs!"),
+        });
+    }
+    if pairs_len > 1 {
+        validate_request_pair_bases(&request)?;
+        validate_request_duplicate_pairs(&request)?;
+    }
+    return Ok(());
+}
+
+fn validate_request_pair_bases(request: &UpdatePairGroupRequest) -> Result<(), Error> {
+    let pairs_len = request.pair_group.pairs.len();
+    let pair = &request.pair_group.pairs[0];
+    for i in 1..pairs_len {
+        let comparison_pair = &request.pair_group.pairs[i];
+        if pair.base != comparison_pair.base {
+            return Err(Error {
+                message: String::from(
+                    "Cannot update a pair group that contains pairs with different bases!",
+                ),
+            });
+        }
+    }
+    return Ok(());
+}
+
+fn validate_request_duplicate_pairs(request: &UpdatePairGroupRequest) -> Result<(), Error> {
+    let pairs_len = request.pair_group.pairs.len();
+    for i in 0..pairs_len - 1 {
+        let pair = &request.pair_group.pairs[i];
+        for j in 1..pairs_len {
+            let comparison_pair = &request.pair_group.pairs[j];
+            if pair.comparison == comparison_pair.comparison {
+                return Err(Error {
+                    message: String::from(
+                        "Cannot update a pair group that contains duplicate pairs!",
+                    ),
+                });
+            }
+        }
+    }
+    return Ok(());
 }
 
 #[cfg(test)]
