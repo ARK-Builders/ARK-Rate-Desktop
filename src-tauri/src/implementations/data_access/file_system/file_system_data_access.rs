@@ -10,7 +10,8 @@ use crate::{
     entities::{asset::Asset, pair::Pair, pair_group::PairGroup, tag::Tag},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
-        delete_pair_group::DeletePairGroupDataAccess, save_pair_group::SavePairGroupDataAccess,
+        delete_pair_group::DeletePairGroupDataAccess, delete_tag::DeleteTagDataAccess,
+        save_pair_group::SavePairGroupDataAccess, save_tag::SaveTagDataAccess,
         store_portfolios::StorePortfoliosDataAccess, update_pair_group::UpdatePairGroupDataAccess,
         view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
     },
@@ -253,6 +254,7 @@ impl DeletePairGroupDataAccess for FileSystemDataAccess {
     async fn delete_pair(&mut self, id: &str) -> Result<(), Error> {
         return delete_pair(&self, id).await;
     }
+
     async fn delete_pair_group(&mut self, id: &str) -> Result<(), Error> {
         return delete_pair_group(&self, id).await;
     }
@@ -472,6 +474,49 @@ async fn save_asset(data_access: &FileSystemDataAccess, asset: &Asset) -> Result
         });
     }
     write_asset(&data_access.root, asset)?;
+    return Ok(());
+}
+
+impl SaveTagDataAccess for FileSystemDataAccess {
+    async fn save_tag(&mut self, tag: &Tag) -> Result<(), Error> {
+        return save_tag(&self, tag).await;
+    }
+}
+
+async fn save_tag(data_access: &FileSystemDataAccess, tag: &Tag) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, TAGS_DIR_NAME)?;
+    let path = dir.join(&tag.id);
+    if path.exists() {
+        return Err(Error {
+            message: String::from("Tag to save already exists!"),
+        });
+    }
+    write_tag(&data_access.root, tag)?;
+    return Ok(());
+}
+
+impl DeleteTagDataAccess for FileSystemDataAccess {
+    async fn delete_tag(&mut self, id: &str) -> Result<(), Error> {
+        return delete_tag(&self, id).await;
+    }
+}
+
+async fn delete_tag(data_access: &FileSystemDataAccess, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, TAGS_DIR_NAME)?;
+    let path = dir.join(id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Tag to delete does not exist!"),
+        });
+    }
+    remove_tag(&data_access.root, id)?;
+    return Ok(());
+}
+
+fn remove_tag(root: &Path, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(root, TAGS_DIR_NAME)?;
+    let path = dir.join(id);
+    remove_object_file(&path)?;
     return Ok(());
 }
 

@@ -5,8 +5,10 @@ use implementations::{
 };
 use interactors::{
     delete_pair_group::{DeletePairGroup, DeletePairGroupRequest},
+    delete_tag::{DeleteTag, DeleteTagRequest},
     interactor::Interactor,
     save_pair_group::{SavePairGroup, SavePairGroupRequest},
+    save_tag::{SaveTag, SaveTagRequest},
     store_portfolios::{StorePortfolios, StorePortfoliosRequest},
     update_pair_group::{UpdatePairGroup, UpdatePairGroupRequest},
     view_pair_groups::ViewPairGroups,
@@ -119,6 +121,26 @@ async fn store_portfolios(request: String) -> String {
     return result_json;
 }
 
+#[tauri::command]
+async fn save_tag(request: String) -> String {
+    let data_access = create_fs_data_access();
+    let mut interactor = SaveTag { data_access };
+    let parsed_request = serde_json::from_str::<SaveTagRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await.unwrap();
+    let result_json = serde_json::to_string(&result).unwrap();
+    return result_json;
+}
+
+#[tauri::command]
+async fn delete_tag(request: String) -> String {
+    let data_access = create_fs_data_access();
+    let mut interactor = DeleteTag { data_access };
+    let parsed_request = serde_json::from_str::<DeleteTagRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await.unwrap();
+    let result_json = serde_json::to_string(&result).unwrap();
+    return result_json;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -129,7 +151,9 @@ pub fn run() {
             update_pair_group,
             delete_pair_group,
             view_portfolios,
-            store_portfolios
+            store_portfolios,
+            save_tag,
+            delete_tag,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
