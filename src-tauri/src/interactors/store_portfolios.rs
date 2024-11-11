@@ -32,6 +32,7 @@ pub struct StorePortfoliosRequest {
     pub assets: Vec<RequestAsset>,
 }
 
+// TODO: should it be called `StoreAssets` instead?
 pub struct StorePortfolios<DA> {
     pub data_access: DA,
 }

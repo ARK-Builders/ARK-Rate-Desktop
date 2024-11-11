@@ -29,6 +29,7 @@ pub struct UpdatePortfolioRequest {
     pub asset: RequestAsset,
 }
 
+// TODO: should it be called `UpdateAsset` instead?
 pub struct UpdatePortfolio<DA> {
     pub data_access: DA,
 }
