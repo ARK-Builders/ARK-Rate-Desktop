@@ -18,16 +18,19 @@ interface ResponseAsset {
   id: string;
   coin: string;
   quantity: number;
+  usd_value: number;
   created_at: string;
   updated_at: string;
 }
 
 interface ResponsePortfolio {
-  tag: ResponseTag;
+  fluctuation: number;
+  tags: ResponseTag[];
   asset: ResponseAsset;
 }
 
 export interface ViewPortfoliosResponse {
+  tags: ResponseTag[];
   usd_pairs: ResponsePair[];
   portfolios: ResponsePortfolio[];
 }

@@ -7,37 +7,42 @@
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
 
-  type Tag = ViewPortfoliosResponse['portfolios'][0]['tag'];
+  type Tag = ViewPortfoliosResponse['tags'][0];
   type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
   type Portfolio = ViewPortfoliosResponse['portfolios'][0];
 
   let isLoading = false;
-  let usdPairs: USDPair[] = [];
-  let groupedPortfolios: Map<Tag, Portfolio[]> = new Map();
 
-  const onSaveAssetOpen = () => {
-    // TODO
-  };
+  let tags: Tag[] = [];
+  let usdPairs: USDPair[] = [];
+  let untaggedPortfolios: Portfolio[] = [];
+  let groupedPortfolios: Map<Tag, Portfolio[]> = new Map();
 
   const loadPortfolios = () => {
     isLoading = true;
+    tags = [];
     usdPairs = [];
+    untaggedPortfolios = [];
     groupedPortfolios = new Map();
     invoke('view_portfolios')
       .then((rawResponse) => {
         const response: ViewPortfoliosResponse = JSON.parse(rawResponse as string);
-        for (const pair of response['usd_pairs']) {
-          usdPairs.push(pair);
-        }
-        for (const portfolio of response['portfolios']) {
-          let tag = groupedPortfolios.keys().find((tag) => tag.id === portfolio.tag.id);
-          if (!tag) {
-            tag = portfolio['tag'];
-            groupedPortfolios.set(tag, []);
+        tags = response.tags;
+        usdPairs = response.usd_pairs;
+        response.portfolios.forEach((p) => {
+          if (p.tags.length === 0) {
+            untaggedPortfolios.push(p);
+          } else {
+            p.tags.forEach((t) => {
+              let portfolios = groupedPortfolios.get(t);
+              if (portfolios === undefined) {
+                portfolios = [];
+                groupedPortfolios.set(t, portfolios);
+              }
+              portfolios.push(p);
+            });
           }
-          const portfolios = groupedPortfolios.get(tag)!;
-          portfolios.push(portfolio);
-        }
+        });
       })
       .catch((err) => {
         console.error(err);
@@ -55,6 +60,10 @@
       });
   };
 
+  const onSavePortfolioOpen = () => {
+    // TODO
+  };
+
   onMount(() => {
     loadPortfolios();
   });
@@ -66,10 +75,14 @@
   </div>
 {:else}
   <div class="h-full min-h-max w-full min-w-max overflow-auto p-24">
-    {#if false}
-      <EmptyView {onSaveAssetOpen} />
+    {#if groupedPortfolios.size === 0}
+      <EmptyView {onSavePortfolioOpen} />
     {:else}
-      <FilledView />
+      <FilledView
+        {groupedPortfolios}
+        {untaggedPortfolios}
+        {onSavePortfolioOpen}
+      />
     {/if}
   </div>
 {/if}

@@ -2,7 +2,7 @@
   import { Button, Heading } from 'flowbite-svelte';
   import { ChartNoAxesColumn, Plus } from 'lucide-svelte';
 
-  export let onSaveAssetOpen: () => void;
+  export let onSavePortfolioOpen: () => void;
 </script>
 
 <div class="flex h-full w-full items-center justify-center">
@@ -19,7 +19,7 @@
       size="lg"
       color="primary"
       class="flex gap-1"
-      on:click={onSaveAssetOpen}
+      on:click={onSavePortfolioOpen}
     >
       <Plus />
       New Asset
