@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 use crate::{
-    entities::{asset::Asset, tag::Tag},
+    entities::{asset::Asset, pair::Pair, tag::Tag},
     utilities::coin_market::CoinMarket,
     Error,
 };
@@ -11,6 +11,7 @@ use super::interactor::Interactor;
 pub trait ViewPortfoliosDataAccess {
     async fn fetch_tags(&mut self) -> Result<Vec<Tag>, Error>;
     async fn fetch_assets(&mut self) -> Result<Vec<Asset>, Error>;
+    async fn update_asset(&mut self, asset: &Asset) -> Result<(), Error>;
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -56,6 +57,7 @@ pub struct ResponseAsset {
     pub id: String,
     pub coin: String,
     pub quantity: f64,
+    pub usd_value: f64,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -72,6 +74,7 @@ impl PartialEq for ResponseAsset {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ResponsePortfolio {
+    pub fluctuation: f64,
     pub tags: Vec<ResponseTag>,
     pub asset: ResponseAsset,
 }
@@ -103,7 +106,13 @@ where
         let tags = self.data_access.fetch_tags().await?;
         let assets = self.data_access.fetch_assets().await?;
         let usd_pairs = self.coin_market.retrieve_usd_pairs().await?;
-        let portfolios = create_portfolios(&tags, &assets)?;
+
+        let fresh_assets = refresh_assets(&usd_pairs, &assets)?;
+        for fresh_assets in &fresh_assets {
+            self.data_access.update_asset(&fresh_assets).await?;
+        }
+
+        let portfolios = create_portfolios(&tags, &assets, &fresh_assets)?;
         return Ok(ViewPortfoliosResponse {
             portfolios,
             tags: tags
@@ -130,23 +139,64 @@ where
     }
 }
 
+fn refresh_assets(usd_pairs: &Vec<Pair>, assets: &Vec<Asset>) -> Result<Vec<Asset>, Error> {
+    let mut fresh_assets: Vec<Asset> = vec![];
+    for asset in assets {
+        let usd_value = get_equivalent_usd_value(usd_pairs, &asset.coin)?;
+        fresh_assets.push(Asset {
+            id: asset.id.clone(),
+            usd_value,
+            coin: asset.coin.clone(),
+            quantity: asset.quantity.clone(),
+            created_at: asset.created_at.clone(),
+            updated_at: asset.updated_at.clone(),
+        });
+    }
+    return Ok(fresh_assets);
+}
+
+// TODO: maybe extract it to a utility function, since it seems to be used in several code parts
+fn get_equivalent_usd_value(usd_pairs: &Vec<Pair>, target_base: &str) -> Result<f64, Error> {
+    for usd_pair in usd_pairs {
+        if usd_pair.comparison == target_base {
+            return Ok(1.0 / usd_pair.value);
+        }
+    }
+    return Err(Error {
+        message: String::from("Could not find the equivalent USD value for the target base!"),
+    });
+}
+
 fn create_portfolios(
     tags: &Vec<Tag>,
     assets: &Vec<Asset>,
+    fresh_assets: &Vec<Asset>,
 ) -> Result<Vec<ResponsePortfolio>, Error> {
-    let mut portfolios: Vec<ResponsePortfolio> = assets
+    let mut portfolios: Vec<ResponsePortfolio> = fresh_assets
         .iter()
-        .map(|a| ResponsePortfolio {
-            tags: vec![],
-            asset: ResponseAsset {
-                id: a.id.clone(),
-                coin: a.coin.clone(),
-                quantity: a.quantity.clone(),
-                created_at: a.created_at.clone(),
-                updated_at: a.updated_at.clone(),
-            },
+        .map(|fa| {
+            let mut fluctuation = 0.0;
+            if let Some(asset) = assets.iter().find(|a| a.id == fa.id) {
+                let usd_value = asset.usd_value;
+                let fresh_usd_value = fa.usd_value;
+                let usd_difference = fresh_usd_value - usd_value;
+                fluctuation = usd_difference / usd_value;
+            }
+            return ResponsePortfolio {
+                fluctuation,
+                tags: vec![],
+                asset: ResponseAsset {
+                    id: fa.id.clone(),
+                    coin: fa.coin.clone(),
+                    quantity: fa.quantity.clone(),
+                    usd_value: fa.usd_value.clone(),
+                    created_at: fa.created_at.clone(),
+                    updated_at: fa.updated_at.clone(),
+                },
+            };
         })
         .collect();
+
     for tag in tags {
         let response_tag = ResponseTag {
             id: tag.id.clone(),

@@ -369,6 +369,10 @@ impl ViewPortfoliosDataAccess for FileSystemDataAccess {
     async fn fetch_assets(&mut self) -> Result<Vec<Asset>, Error> {
         return fetch_assets(&self).await;
     }
+
+    async fn update_asset(&mut self, asset: &Asset) -> Result<(), Error> {
+        return update_asset(&self, asset).await;
+    }
 }
 
 async fn fetch_tags(data_access: &FileSystemDataAccess) -> Result<Vec<Tag>, Error> {
