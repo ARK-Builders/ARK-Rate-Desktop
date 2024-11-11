@@ -74,7 +74,7 @@ where
 {
     async fn perform(&mut self, _request: ()) -> Result<ViewPairGroupsResponse, Error> {
         let mut pair_groups: Vec<PairGroup> = vec![];
-        let fresh_usd_pairs: Vec<Pair> = self.coin_market.retrieve_usd_pairs().await?;
+        let fresh_usd_pairs: Vec<Pair> = self.coin_market.fetch_usd_pairs().await?;
         let stored_pair_groups: Vec<PairGroup> = self.data_access.fetch_pair_groups().await?;
         for stored_pair_group in &stored_pair_groups {
             if stored_pair_group.is_pinned {

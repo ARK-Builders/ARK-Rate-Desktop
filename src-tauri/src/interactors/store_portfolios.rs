@@ -59,7 +59,7 @@ async fn store_assets(
     coin_market: &mut impl CoinMarket,
     request: &StorePortfoliosRequest,
 ) -> Result<(), Error> {
-    let usd_pairs = coin_market.retrieve_usd_pairs().await?;
+    let usd_pairs = coin_market.fetch_usd_pairs().await?;
     for request_asset in &request.assets {
         let usd_value = get_equivalent_usd_value(&usd_pairs, &request_asset.coin)?;
         let asset = Asset {
@@ -100,7 +100,7 @@ async fn store_tagged_assets(
         });
     }
     let mut tag = maybe_tag.unwrap();
-    let usd_pairs = coin_market.retrieve_usd_pairs().await?;
+    let usd_pairs = coin_market.fetch_usd_pairs().await?;
     for request_asset in &request.assets {
         let usd_value = get_equivalent_usd_value(&usd_pairs, &request_asset.coin)?;
         let asset = Asset {

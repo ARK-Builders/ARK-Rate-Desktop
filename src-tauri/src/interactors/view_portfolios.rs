@@ -105,7 +105,7 @@ where
     async fn perform(&mut self, _request: ()) -> Result<ViewPortfoliosResponse, Error> {
         let tags = self.data_access.fetch_tags().await?;
         let assets = self.data_access.fetch_assets().await?;
-        let usd_pairs = self.coin_market.retrieve_usd_pairs().await?;
+        let usd_pairs = self.coin_market.fetch_usd_pairs().await?;
 
         let fresh_assets = refresh_assets(&usd_pairs, &assets)?;
         for fresh_assets in &fresh_assets {

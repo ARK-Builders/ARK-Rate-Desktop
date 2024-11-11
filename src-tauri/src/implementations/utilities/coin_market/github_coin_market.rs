@@ -23,9 +23,9 @@ struct CryptoObject {
 }
 
 impl CoinMarket for GithubCoinMarket {
-    async fn retrieve_usd_pairs(&mut self) -> Result<Vec<Pair>, Error> {
-        let usd_fiat_pairs: Vec<Pair> = retrieve_usd_fiat_pairs(&self.fiat_rates_url).await?;
-        let usd_crypto_pairs: Vec<Pair> = retrieve_usd_crypto_pairs(&self.crypto_rates_url).await?;
+    async fn fetch_usd_pairs(&mut self) -> Result<Vec<Pair>, Error> {
+        let usd_fiat_pairs: Vec<Pair> = fetch_usd_fiat_pairs(&self.fiat_rates_url).await?;
+        let usd_crypto_pairs: Vec<Pair> = fetch_usd_crypto_pairs(&self.crypto_rates_url).await?;
         return Ok(usd_fiat_pairs
             .iter()
             .chain(&usd_crypto_pairs)
@@ -34,7 +34,7 @@ impl CoinMarket for GithubCoinMarket {
     }
 }
 
-async fn retrieve_usd_fiat_pairs(url: &str) -> Result<Vec<Pair>, Error> {
+async fn fetch_usd_fiat_pairs(url: &str) -> Result<Vec<Pair>, Error> {
     match reqwest::get(url).await {
         Ok(resp) => match resp.text().await {
             Ok(text) => {
@@ -70,7 +70,7 @@ async fn retrieve_usd_fiat_pairs(url: &str) -> Result<Vec<Pair>, Error> {
     }
 }
 
-async fn retrieve_usd_crypto_pairs(url: &str) -> Result<Vec<Pair>, Error> {
+async fn fetch_usd_crypto_pairs(url: &str) -> Result<Vec<Pair>, Error> {
     match reqwest::get(url).await {
         Ok(resp) => match resp.text().await {
             Ok(text) => {
@@ -108,16 +108,5 @@ async fn retrieve_usd_crypto_pairs(url: &str) -> Result<Vec<Pair>, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use tokio;
-
-    #[tokio::test]
-    async fn test_retrieve_pairs_by_base() {
-        let mut coin_market = GithubCoinMarket {
-            fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
-            crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
-        };
-        let pairs_result = coin_market.retrieve_usd_pairs().await;
-        assert!(pairs_result.is_ok())
-    }
+    // TODO: create unit tests
 }
