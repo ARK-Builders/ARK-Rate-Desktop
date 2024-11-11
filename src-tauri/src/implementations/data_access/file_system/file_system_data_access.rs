@@ -13,7 +13,8 @@ use crate::{
         delete_pair_group::DeletePairGroupDataAccess, delete_tag::DeleteTagDataAccess,
         save_pair_group::SavePairGroupDataAccess, save_tag::SaveTagDataAccess,
         store_portfolios::StorePortfoliosDataAccess, update_pair_group::UpdatePairGroupDataAccess,
-        view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
+        update_portfolio::UpdatePortfolioDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
+        view_portfolios::ViewPortfoliosDataAccess,
     },
     Error,
 };
@@ -551,6 +552,72 @@ fn remove_tag(root: &Path, id: &str) -> Result<(), Error> {
     let dir = ensure_dir(root, TAGS_DIR_NAME)?;
     let path = dir.join(id);
     remove_object_file(&path)?;
+    return Ok(());
+}
+
+impl UpdatePortfolioDataAccess for FileSystemDataAccess {
+    async fn retrieve_tags_by_asset(&mut self, id: &str) -> Result<Vec<Tag>, Error> {
+        return retrieve_tags_by_asset(&self, id).await;
+    }
+
+    async fn find_tag(&mut self, id: &str) -> Result<Option<Tag>, Error> {
+        return find_tag(&self, id).await;
+    }
+
+    async fn update_tag(&mut self, tag: &Tag) -> Result<(), Error> {
+        return update_tag(&self, tag).await;
+    }
+
+    async fn find_asset(&mut self, id: &str) -> Result<Option<Asset>, Error> {
+        return find_asset(&self, id).await;
+    }
+
+    async fn update_asset(&mut self, asset: &Asset) -> Result<(), Error> {
+        return update_asset(&self, asset).await;
+    }
+}
+
+async fn retrieve_tags_by_asset(
+    data_access: &FileSystemDataAccess,
+    id: &str,
+) -> Result<Vec<Tag>, Error> {
+    let mut tags: Vec<Tag> = vec![];
+    let entries = get_dir_entries(&data_access.root, TAGS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(tag_id) = file_name.to_str() {
+            let tag = read_tag(&data_access.root, tag_id)?;
+            if tag.assets.iter().any(|a| a.id == id) {
+                tags.push(tag);
+            }
+        }
+    }
+    return Ok(tags);
+}
+
+async fn find_asset(data_access: &FileSystemDataAccess, id: &str) -> Result<Option<Asset>, Error> {
+    let entries = get_dir_entries(&data_access.root, ASSETS_DIR_NAME)?;
+    for entry in entries {
+        let file_name = entry.file_name();
+        if let Some(comparison_id) = file_name.to_str() {
+            if comparison_id == id {
+                let asset = read_asset(&data_access.root, id)?;
+                return Ok(Some(asset));
+            }
+        }
+    }
+    return Ok(None);
+}
+
+async fn update_asset(data_access: &FileSystemDataAccess, asset: &Asset) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, ASSETS_DIR_NAME)?;
+    let path = dir.join(&asset.id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Asset to update does not exist!"),
+        });
+    }
+    write_asset(&data_access.root, asset)?;
     return Ok(());
 }
 
