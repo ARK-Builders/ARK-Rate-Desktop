@@ -410,6 +410,7 @@ fn read_asset(root: &Path, id: &str) -> Result<Asset, Error> {
         id: fs_asset.id.clone(),
         coin: fs_asset.coin.clone(),
         quantity: fs_asset.quantity.clone(),
+        usd_value: fs_asset.usd_value.clone(),
         created_at: fs_asset.created_at.clone(),
         updated_at: fs_asset.updated_at.clone(),
     });
@@ -493,6 +494,7 @@ fn write_asset(root: &Path, asset: &Asset) -> Result<(), Error> {
             id: asset.id.clone(),
             coin: asset.coin.clone(),
             quantity: asset.quantity.clone(),
+            usd_value: asset.usd_value.clone(),
             created_at: asset.created_at.clone(),
             updated_at: asset.updated_at.clone(),
         },

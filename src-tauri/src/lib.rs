@@ -115,8 +115,15 @@ async fn view_portfolios() -> String {
 
 #[tauri::command]
 async fn store_portfolios(request: String) -> String {
+    let coin_market = GithubCoinMarket {
+        fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
+        crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
+    };
     let data_access = create_fs_data_access();
-    let mut interactor = StorePortfolios { data_access };
+    let mut interactor = StorePortfolios {
+        coin_market,
+        data_access,
+    };
     let parsed_request = serde_json::from_str::<StorePortfoliosRequest>(&request).unwrap();
     let result = interactor.perform(parsed_request).await.unwrap();
     let result_json = serde_json::to_string(&result).unwrap();

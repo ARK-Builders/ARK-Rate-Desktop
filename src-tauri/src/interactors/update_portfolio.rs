@@ -50,6 +50,7 @@ where
             id: asset.id.clone(),
             coin: request.asset.coin.clone(),
             quantity: request.asset.quantity.clone(),
+            usd_value: asset.usd_value.clone(),
             created_at: asset.created_at.clone(),
             updated_at: Utc::now().to_rfc3339(),
         };
