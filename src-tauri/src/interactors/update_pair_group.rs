@@ -1,5 +1,5 @@
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
@@ -18,7 +18,7 @@ pub trait UpdatePairGroupDataAccess {
     async fn update_pair_group(&mut self, pair_group: &PairGroup) -> Result<(), Error>;
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RequestPair {
     pub id: String,
     pub value: f64,
@@ -35,7 +35,7 @@ impl PartialEq for RequestPair {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RequestPairGroup {
     pub id: String,
     pub is_pinned: bool,
@@ -52,9 +52,9 @@ impl PartialEq for RequestPairGroup {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct UpdatePairGroupRequest {
-    pair_group: RequestPairGroup,
+    pub pair_group: RequestPairGroup,
 }
 
 pub struct UpdatePairGroup<DA> {

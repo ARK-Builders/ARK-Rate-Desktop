@@ -23,7 +23,7 @@ impl PartialEq for RequestTag {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SaveTagRequest {
-    tag: RequestTag,
+    pub tag: RequestTag,
 }
 
 pub struct SaveTag<DA> {

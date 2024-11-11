@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{entities::pair_group::PairGroup, Error};
 
@@ -10,7 +10,7 @@ pub trait DeletePairGroupDataAccess {
     async fn delete_pair_group(&mut self, id: &str) -> Result<(), Error>;
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RequestPairGroup {
     pub id: String,
 }
@@ -21,9 +21,9 @@ impl PartialEq for RequestPairGroup {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct DeletePairGroupRequest {
-    pair_group: RequestPairGroup,
+    pub pair_group: RequestPairGroup,
 }
 
 pub struct DeletePairGroup<DA> {

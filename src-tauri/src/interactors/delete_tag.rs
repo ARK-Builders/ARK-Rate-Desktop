@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::Error;
 
@@ -8,7 +8,7 @@ pub trait DeleteTagDataAccess {
     async fn delete_tag(&mut self, id: &str) -> Result<(), Error>;
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RequestTag {
     pub id: String,
 }
@@ -19,9 +19,9 @@ impl PartialEq for RequestTag {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct DeleteTagRequest {
-    tag: RequestTag,
+    pub tag: RequestTag,
 }
 
 pub struct DeleteTag<DA> {

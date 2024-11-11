@@ -46,7 +46,7 @@ impl PartialEq for RequestPairGroup {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SavePairGroupRequest {
-    pair_group: RequestPairGroup,
+    pub pair_group: RequestPairGroup,
 }
 
 pub struct SavePairGroup<DA> {
