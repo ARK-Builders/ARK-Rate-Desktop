@@ -75,6 +75,7 @@ async fn store_assets(
     return Ok(());
 }
 
+// TODO: maybe extract it to a utility function, since it seems to be used in several code parts
 fn get_equivalent_usd_value(usd_pairs: &Vec<Pair>, target_base: &str) -> Result<f64, Error> {
     for usd_pair in usd_pairs {
         if usd_pair.comparison == target_base {
