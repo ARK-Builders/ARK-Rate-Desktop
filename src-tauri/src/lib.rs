@@ -4,6 +4,7 @@ use implementations::{
     utilities::coin_market::github_coin_market::GithubCoinMarket,
 };
 use interactors::{
+    delete_asset::{DeleteAsset, DeleteAssetRequest},
     delete_pair_group::{DeletePairGroup, DeletePairGroupRequest},
     delete_tag::{DeleteTag, DeleteTagRequest},
     interactor::Interactor,
@@ -152,6 +153,16 @@ async fn update_portfolio(request: String) -> String {
     return result_json;
 }
 
+#[tauri::command]
+async fn delete_asset(request: String) -> String {
+    let data_access = create_fs_data_access();
+    let mut interactor = DeleteAsset { data_access };
+    let parsed_request = serde_json::from_str::<DeleteAssetRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await.unwrap();
+    let result_json = serde_json::to_string(&result).unwrap();
+    return result_json;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -166,6 +177,7 @@ pub fn run() {
             save_tag,
             delete_tag,
             update_portfolio,
+            delete_asset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

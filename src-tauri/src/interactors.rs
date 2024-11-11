@@ -1,3 +1,4 @@
+pub mod delete_asset;
 pub mod delete_pair_group;
 pub mod delete_tag;
 pub mod interactor;

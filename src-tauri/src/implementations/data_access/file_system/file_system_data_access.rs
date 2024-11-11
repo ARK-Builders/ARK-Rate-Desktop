@@ -10,11 +10,11 @@ use crate::{
     entities::{asset::Asset, pair::Pair, pair_group::PairGroup, tag::Tag},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
-        delete_pair_group::DeletePairGroupDataAccess, delete_tag::DeleteTagDataAccess,
-        save_pair_group::SavePairGroupDataAccess, save_tag::SaveTagDataAccess,
-        store_portfolios::StorePortfoliosDataAccess, update_pair_group::UpdatePairGroupDataAccess,
-        update_portfolio::UpdatePortfolioDataAccess, view_pair_groups::ViewPairGroupsDataAccess,
-        view_portfolios::ViewPortfoliosDataAccess,
+        delete_asset::DeleteAssetDataAccess, delete_pair_group::DeletePairGroupDataAccess,
+        delete_tag::DeleteTagDataAccess, save_pair_group::SavePairGroupDataAccess,
+        save_tag::SaveTagDataAccess, store_portfolios::StorePortfoliosDataAccess,
+        update_pair_group::UpdatePairGroupDataAccess, update_portfolio::UpdatePortfolioDataAccess,
+        view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
     },
     Error,
 };
@@ -618,6 +618,39 @@ async fn update_asset(data_access: &FileSystemDataAccess, asset: &Asset) -> Resu
         });
     }
     write_asset(&data_access.root, asset)?;
+    return Ok(());
+}
+
+impl DeleteAssetDataAccess for FileSystemDataAccess {
+    async fn retrieve_tags_by_asset(&mut self, id: &str) -> Result<Vec<Tag>, Error> {
+        return retrieve_tags_by_asset(&self, id).await;
+    }
+
+    async fn update_tag(&mut self, tag: &Tag) -> Result<(), Error> {
+        return update_tag(&self, tag).await;
+    }
+
+    async fn delete_asset(&mut self, id: &str) -> Result<(), Error> {
+        return delete_asset(&self, id).await;
+    }
+}
+
+async fn delete_asset(data_access: &FileSystemDataAccess, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, ASSETS_DIR_NAME)?;
+    let path = dir.join(id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Asset to delete does not exist!"),
+        });
+    }
+    remove_asset(&data_access.root, id)?;
+    return Ok(());
+}
+
+fn remove_asset(root: &Path, id: &str) -> Result<(), Error> {
+    let dir = ensure_dir(root, ASSETS_DIR_NAME)?;
+    let path = dir.join(id);
+    remove_object_file(&path)?;
     return Ok(());
 }
 
