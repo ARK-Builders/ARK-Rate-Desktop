@@ -84,6 +84,7 @@ impl PartialEq for ResponsePortfolio {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ViewPortfoliosResponse {
+    pub tags: Vec<ResponseTag>,
     pub usd_pairs: Vec<ResponsePair>,
     pub portfolios: Vec<ResponsePortfolio>,
 }
@@ -105,6 +106,15 @@ where
         let portfolios = create_portfolios(&tags, &assets)?;
         return Ok(ViewPortfoliosResponse {
             portfolios,
+            tags: tags
+                .iter()
+                .map(|t| ResponseTag {
+                    id: t.id.clone(),
+                    name: t.name.clone(),
+                    created_at: t.created_at.clone(),
+                    updated_at: t.updated_at.clone(),
+                })
+                .collect(),
             usd_pairs: usd_pairs
                 .iter()
                 .map(|p| ResponsePair {
