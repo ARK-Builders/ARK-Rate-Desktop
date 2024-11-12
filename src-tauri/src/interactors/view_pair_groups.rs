@@ -188,17 +188,7 @@ fn refresh_non_usd_pair_group(
         get_equivalent_usd_value(fresh_usd_pairs, &non_usd_pair_group.pairs[0].base)?;
     for non_usd_pair in &non_usd_pair_group.pairs {
         for fresh_usd_pair in fresh_usd_pairs {
-            if non_usd_pair.base == fresh_usd_pair.comparison {
-                fresh_non_usd_pair_group.pairs.push(Pair {
-                    id: non_usd_pair.id.clone(),
-                    base: non_usd_pair.base.clone(),
-                    value: equivalent_usd_value,
-                    comparison: non_usd_pair.comparison.clone(),
-                    created_at: non_usd_pair.created_at.clone(),
-                    updated_at: Utc::now().to_rfc3339(),
-                });
-                break;
-            } else if non_usd_pair.comparison == fresh_usd_pair.comparison {
+            if non_usd_pair.comparison == fresh_usd_pair.comparison {
                 fresh_non_usd_pair_group.pairs.push(Pair {
                     id: non_usd_pair.id.clone(),
                     base: non_usd_pair.base.clone(),

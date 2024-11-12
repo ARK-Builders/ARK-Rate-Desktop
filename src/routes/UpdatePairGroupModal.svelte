@@ -14,9 +14,8 @@
   export let pairGroup: PairGroup;
 
   export let onClose: () => void;
-  export let onUpdate: (request: UpdatePairGroupRequest) => void;
+  export let onUpdate: (request: UpdatePairGroupRequest) => Promise<void>;
 
-  let isOpen = true;
   let isLoading = true;
   let isDisabled = false;
   let isAddPairDisabled = false;
@@ -161,7 +160,8 @@
 
 {#if isLoading || pairGroup.pairs.length < 1}
   <Modal
-    bind:open={isOpen}
+    dismissable={false}
+    open
     size="xs"
     title="Update Pair"
     classDialog="absolute max-h-screen"
@@ -173,7 +173,7 @@
   </Modal>
 {:else}
   <Modal
-    bind:open={isOpen}
+    open
     size="xs"
     title="Update Pair"
     classDialog="absolute max-h-screen"
@@ -271,7 +271,7 @@
     >
       <Button
         color="light"
-        on:click={() => (isOpen = false)}
+        on:click={onClose}
       >
         Cancel
       </Button>
@@ -292,6 +292,8 @@
                 comparison: p.comparison,
               })),
             },
+          }).finally(() => {
+            isLoading = false;
           });
         }}
       >

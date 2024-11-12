@@ -119,7 +119,7 @@
           {
             id: crypto.randomUUID(),
             type: 'success',
-            message: 'Pair pin successfully updated!',
+            message: 'Pair pin updated!',
           },
         ];
         return loadPairGroups();
@@ -188,7 +188,7 @@
           {
             id: crypto.randomUUID(),
             type: 'success',
-            message: 'Pair updated successfully!',
+            message: 'Pair deleted!',
           },
         ];
         pairGroupToDelete = undefined;

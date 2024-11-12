@@ -13,9 +13,8 @@
   export let usdPairs: USDPair[];
 
   export let onClose: () => void;
-  export let onSave: (request: SavePairGroupRequest) => void;
+  export let onSave: (request: SavePairGroupRequest) => Promise<void>;
 
-  let isOpen = true;
   let isLoading = true;
   let isDisabled = false;
   let isAddPairDisabled = false;
@@ -170,7 +169,8 @@
 
 {#if isLoading || pairGroup.pairs.length < 1}
   <Modal
-    bind:open={isOpen}
+    dismissable={false}
+    open
     size="xs"
     title="Add New Pair"
     classDialog="absolute max-h-screen"
@@ -182,7 +182,7 @@
   </Modal>
 {:else}
   <Modal
-    bind:open={isOpen}
+    open
     size="xs"
     title="Add New Pair"
     classDialog="absolute max-h-screen"
@@ -280,7 +280,7 @@
     >
       <Button
         color="light"
-        on:click={() => (isOpen = false)}
+        on:click={onClose}
       >
         Cancel
       </Button>
@@ -299,6 +299,8 @@
                 comparison: p.comparison,
               })),
             },
+          }).finally(() => {
+            isLoading = false;
           });
         }}
       >
