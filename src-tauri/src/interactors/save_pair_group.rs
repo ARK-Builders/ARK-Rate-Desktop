@@ -121,7 +121,7 @@ fn validate_request_duplicate_pairs(request: &SavePairGroupRequest) -> Result<()
     let pairs_len = request.pair_group.pairs.len();
     for i in 0..pairs_len - 1 {
         let pair = &request.pair_group.pairs[i];
-        for j in 1..pairs_len {
+        for j in i + 1..pairs_len {
             let comparison_pair = &request.pair_group.pairs[j];
             if pair.comparison == comparison_pair.comparison {
                 return Err(Error {
