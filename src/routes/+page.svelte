@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { DeletePairGroupRequest } from '$lib/business/interactors/delete_pair_group/DeletePairGroupRequest';
+  import type { ErrorResponse } from '$lib/business/interactors/ErrorResponse';
   import type { SavePairGroupRequest } from '$lib/business/interactors/save_pair_group/SavePairGroupRequest';
   import type { UpdatePairGroupRequest } from '$lib/business/interactors/update_pair_group/UpdatePairGroupRequest';
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
@@ -46,13 +47,13 @@
         }
       })
       .catch((err) => {
-        console.error(err);
+        const response: ErrorResponse = JSON.parse(err);
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'error',
-            message: 'Something unexpected happened...',
+            message: response.message,
           },
         ];
       })
@@ -84,13 +85,13 @@
         return loadPairGroups();
       })
       .catch((err) => {
-        console.error(err);
+        const response: ErrorResponse = JSON.parse(err);
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'error',
-            message: 'Unexpected error saving pair...',
+            message: response.message,
           },
         ];
       });
@@ -124,13 +125,13 @@
         return loadPairGroups();
       })
       .catch((err) => {
-        console.error(err);
+        const response: ErrorResponse = JSON.parse(err);
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'error',
-            message: 'Unexpected error updating pair pin...',
+            message: response.message,
           },
         ];
       });
@@ -159,13 +160,13 @@
         return loadPairGroups();
       })
       .catch((err) => {
-        console.error(err);
+        const response: ErrorResponse = JSON.parse(err);
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'error',
-            message: 'Unexpected error updating pair group...',
+            message: response.message,
           },
         ];
       });
@@ -194,13 +195,13 @@
         return loadPairGroups();
       })
       .catch((err) => {
-        console.error(err);
+        const response: ErrorResponse = JSON.parse(err);
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'error',
-            message: 'Unexpected error updating pair group...',
+            message: response.message,
           },
         ];
       });

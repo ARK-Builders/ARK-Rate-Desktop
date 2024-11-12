@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { ErrorResponse } from '$lib/business/interactors/ErrorResponse';
   import type { SaveTagRequest } from '$lib/business/interactors/save_tag/SaveTagRequest';
   import type { StorePortfoliosRequest } from '$lib/business/interactors/store_portfolios/StorePortfoliosRequest';
   import type { ViewPortfoliosResponse } from '$lib/business/interactors/view_portfolios/ViewPortfoliosResponse';
@@ -49,13 +50,13 @@
         });
       })
       .catch((err) => {
-        console.error(err);
+        const response: ErrorResponse = JSON.parse(err);
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'error',
-            message: 'Something unexpected happened...',
+            message: response.message,
           },
         ];
       })

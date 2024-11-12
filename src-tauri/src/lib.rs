@@ -1,4 +1,5 @@
 use directories::ProjectDirs;
+use error::Error;
 use implementations::{
     data_access::file_system::file_system_data_access::FileSystemDataAccess,
     utilities::coin_market::github_coin_market::GithubCoinMarket,
@@ -18,14 +19,10 @@ use interactors::{
 };
 
 mod entities;
+mod error;
 mod implementations;
 mod interactors;
 mod utilities;
-
-#[derive(Clone, Debug)]
-pub struct Error {
-    pub message: String,
-}
 
 /*
     TODO (NOT SURE):
@@ -34,7 +31,7 @@ pub struct Error {
 */
 
 #[tauri::command]
-async fn view_pair_groups() -> String {
+async fn view_pair_groups() -> Result<String, String> {
     let coin_market = GithubCoinMarket {
         fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
         crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
@@ -44,9 +41,11 @@ async fn view_pair_groups() -> String {
         coin_market,
         data_access,
     };
-    let result = interactor.perform(()).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(()).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 fn create_fs_data_access() -> FileSystemDataAccess {
@@ -68,37 +67,43 @@ fn get_project_dirs() -> Result<ProjectDirs, Error> {
 }
 
 #[tauri::command]
-async fn save_pair_group(request: String) -> String {
+async fn save_pair_group(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = SavePairGroup { data_access };
     let parsed_request = serde_json::from_str::<SavePairGroupRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn update_pair_group(request: String) -> String {
+async fn update_pair_group(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = UpdatePairGroup { data_access };
     let parsed_request = serde_json::from_str::<UpdatePairGroupRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn delete_pair_group(request: String) -> String {
+async fn delete_pair_group(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = DeletePairGroup { data_access };
     let parsed_request = serde_json::from_str::<DeletePairGroupRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn view_portfolios() -> String {
+async fn view_portfolios() -> Result<String, String> {
     let coin_market = GithubCoinMarket {
         fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
         crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
@@ -108,13 +113,15 @@ async fn view_portfolios() -> String {
         coin_market,
         data_access,
     };
-    let result = interactor.perform(()).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(()).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn store_portfolios(request: String) -> String {
+async fn store_portfolios(request: String) -> Result<String, String> {
     let coin_market = GithubCoinMarket {
         fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
         crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
@@ -125,49 +132,59 @@ async fn store_portfolios(request: String) -> String {
         data_access,
     };
     let parsed_request = serde_json::from_str::<StorePortfoliosRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn save_tag(request: String) -> String {
+async fn save_tag(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = SaveTag { data_access };
     let parsed_request = serde_json::from_str::<SaveTagRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn delete_tag(request: String) -> String {
+async fn delete_tag(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = DeleteTag { data_access };
     let parsed_request = serde_json::from_str::<DeleteTagRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn update_portfolio(request: String) -> String {
+async fn update_portfolio(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = UpdatePortfolio { data_access };
     let parsed_request = serde_json::from_str::<UpdatePortfolioRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[tauri::command]
-async fn delete_asset(request: String) -> String {
+async fn delete_asset(request: String) -> Result<String, String> {
     let data_access = create_fs_data_access();
     let mut interactor = DeleteAsset { data_access };
     let parsed_request = serde_json::from_str::<DeleteAssetRequest>(&request).unwrap();
-    let result = interactor.perform(parsed_request).await.unwrap();
-    let result_json = serde_json::to_string(&result).unwrap();
-    return result_json;
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
