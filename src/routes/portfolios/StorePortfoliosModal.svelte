@@ -1,0 +1,224 @@
+<script lang="ts">
+  import type { SaveTagRequest } from '$lib/business/interactors/save_tag/SaveTagRequest';
+  import type { StorePortfoliosRequest } from '$lib/business/interactors/store_portfolios/StorePortfoliosRequest';
+  import type { ViewPortfoliosResponse } from '$lib/business/interactors/view_portfolios/ViewPortfoliosResponse';
+  import { Button, Input, Modal } from 'flowbite-svelte';
+  import { FolderClosed, FolderPlus, Plus, Trash } from 'lucide-svelte';
+  import { onMount } from 'svelte';
+  import { MultiSelect, type ObjectOption } from 'svelte-multiselect';
+  import SaveTagModal from './SaveTagModal.svelte';
+
+  type Tag = ViewPortfoliosResponse['tags'][0];
+  type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
+
+  export let tags: Tag[];
+  export let usdPairs: USDPair[];
+
+  export let onClose: () => void;
+  export let onTagSave: (request: SaveTagRequest) => void;
+  export let onStore: (request: StorePortfoliosRequest) => void;
+
+  let isDisabled = false;
+  let isSaveTagOpen = false;
+  let isAddInsertedAssedDisabled = false;
+
+  let coinOptions: string[] = [];
+  let tagOptions: ObjectOption[] = [];
+
+  let insertedTag: string | undefined;
+  let insertedAssets: [string, string][] = [];
+
+  const getRandomCoin = (): string => {
+    const randomIndex = Math.floor(Math.random() * usdPairs.length);
+    return usdPairs[randomIndex].comparison;
+  };
+
+  const removeInsertedAsset = (i: number) => {
+    insertedAssets = insertedAssets.filter((_, j) => j !== i);
+    if (insertedAssets.every((ia) => ia[0].trim().length > 0)) {
+      isAddInsertedAssedDisabled = false;
+    }
+  };
+
+  const addInsertedAsset = () => {
+    insertedAssets = [...insertedAssets, [getRandomCoin(), '1']];
+  };
+
+  const onInsertedTagSelect = (event: CustomEvent) => {
+    const detail = event.detail;
+    if (!detail) return;
+    if (detail.type === 'remove') {
+      insertedTag = undefined;
+      return;
+    }
+    const tagOption = detail.option as ObjectOption;
+    const tag = tagOption.value as string;
+    if (tag === 'new_tag') {
+      insertedTag = undefined;
+      onSaveTagOpen();
+    } else {
+      insertedTag = tagOption.value as string;
+    }
+  };
+
+  const onInsertedAssetCoinChange = (insertedAsset: [string, string]) => (event: CustomEvent) => {
+    const detail = event.detail;
+    if (!detail) return;
+    if (detail.type === 'remove') {
+      isAddInsertedAssedDisabled = true;
+      insertedAsset[0] = '';
+      return;
+    }
+    isAddInsertedAssedDisabled = false;
+    insertedAsset[0] = detail.option;
+  };
+
+  const onSaveTagOpen = () => {
+    isSaveTagOpen = true;
+  };
+
+  const onSaveTagClose = () => {
+    isSaveTagOpen = false;
+  };
+
+  onMount(() => {
+    coinOptions = usdPairs.map((p) => p.comparison);
+    tagOptions = [
+      {
+        value: 'new_tag',
+        label: 'New tag',
+      },
+      ...tags.map((t) => ({
+        value: t.id,
+        label: t.name,
+      })),
+    ];
+    addInsertedAsset();
+  });
+</script>
+
+{#if isSaveTagOpen}
+  <SaveTagModal
+    onSave={onTagSave}
+    onClose={onSaveTagClose}
+  />
+{/if}
+
+<Modal
+  open={!isSaveTagOpen}
+  size="xs"
+  title="Add New Assets"
+  classDialog="absolute max-h-screen"
+  on:close={isSaveTagOpen ? undefined : onClose}
+>
+  <form class="flex flex-col items-start gap-4 pb-44">
+    <div class="flex w-full flex-col gap-4">
+      {#each insertedAssets as insertedAsset, i}
+        <div class="flex items-center gap-4">
+          <div class="flex flex-grow">
+            <MultiSelect
+              options={coinOptions}
+              disabled={isDisabled}
+              selected={[insertedAsset[0]]}
+              maxSelect={1}
+              minSelect={1}
+              maxOptions={7}
+              ulSelectedClass="!w-32"
+              outerDivClass="!rounded-r-none"
+              liSelectedClass="!bg-transparent"
+              ulOptionsClass="!rounded-tr-none"
+              on:change={onInsertedAssetCoinChange(insertedAsset)}
+            />
+            <Input
+              bind:value={insertedAsset[1]}
+              disabled={isDisabled}
+              type="text"
+              class="rounded-l-none"
+            />
+          </div>
+          {#if i > 0}
+            <Button
+              outline
+              size="xs"
+              color="light"
+              on:click={() => removeInsertedAsset(i)}
+            >
+              <Trash class="size-4" />
+            </Button>
+          {/if}
+        </div>
+      {/each}
+      <div class="flex justify-start">
+        <Button
+          disabled={isDisabled || isAddInsertedAssedDisabled}
+          size="xs"
+          color="light"
+          class="flex gap-2"
+          on:click={addInsertedAsset}
+        >
+          <Plus class="size-4" />
+          New Currency
+        </Button>
+      </div>
+    </div>
+    <MultiSelect
+      let:option={tagOption}
+      options={tagOptions}
+      placeholder="Add tag"
+      maxSelect={1}
+      minSelect={1}
+      inputClass="h-10"
+      liOptionClass="!p-0"
+      liSelectedClass="!bg-transparent"
+      on:change={onInsertedTagSelect}
+    >
+      {#if tagOption.value === 'new_tag'}
+        <div class="flex gap-2 border-b p-2">
+          <FolderPlus />
+          {tagOption.label}
+        </div>
+      {:else}
+        <div class="flex gap-2 p-2">
+          <FolderClosed />
+          {tagOption.label}
+        </div>
+      {/if}
+      <div
+        slot="expand-icon"
+        class="p-2"
+      >
+        <FolderClosed />
+      </div>
+    </MultiSelect>
+  </form>
+  <div
+    slot="footer"
+    class="flex w-full justify-end gap-4"
+  >
+    <Button
+      color="light"
+      on:click={onClose}
+    >
+      Cancel
+    </Button>
+    <Button
+      disabled={isDisabled}
+      color="primary"
+      on:click={() => {
+        onStore({
+          tag: insertedTag
+            ? {
+                id: insertedTag,
+              }
+            : undefined,
+          assets: insertedAssets.map((ia) => ({
+            coin: ia[0],
+            quantity: parseFloat(ia[1]),
+          })),
+        });
+      }}
+    >
+      Save Changes
+    </Button>
+  </div>
+</Modal>

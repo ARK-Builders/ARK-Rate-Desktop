@@ -9,7 +9,7 @@
   export let untaggedPortfolios: Portfolio[];
   export let groupedPortfolios: Map<Tag, Portfolio[]>;
 
-  export let onSavePortfolioOpen: () => void;
+  export let onStorePortfoliosOpen: () => void;
 
   const getTotalUSDValue = (portfolios: Portfolio[]): number => {
     return portfolios.map((p) => p.asset.usd_value * p.asset.quantity).reduce((acc, current) => acc + current);
@@ -42,7 +42,7 @@
     size="md"
     color="primary"
     class="flex gap-1"
-    on:click={onSavePortfolioOpen}
+    on:click={onStorePortfoliosOpen}
   >
     <Plus />
     New Asset

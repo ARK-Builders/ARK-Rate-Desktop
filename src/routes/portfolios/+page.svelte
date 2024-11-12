@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { SaveTagRequest } from '$lib/business/interactors/save_tag/SaveTagRequest';
+  import type { StorePortfoliosRequest } from '$lib/business/interactors/store_portfolios/StorePortfoliosRequest';
   import type { ViewPortfoliosResponse } from '$lib/business/interactors/view_portfolios/ViewPortfoliosResponse';
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
@@ -6,12 +8,14 @@
   import { onMount } from 'svelte';
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
+  import StorePortfoliosModal from './StorePortfoliosModal.svelte';
 
   type Tag = ViewPortfoliosResponse['tags'][0];
   type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
   type Portfolio = ViewPortfoliosResponse['portfolios'][0];
 
   let isLoading = false;
+  let isStorePortfoliosOpen = false;
 
   let tags: Tag[] = [];
   let usdPairs: USDPair[] = [];
@@ -60,14 +64,37 @@
       });
   };
 
-  const onSavePortfolioOpen = () => {
-    // TODO
+  const onStorePortfoliosOpen = () => {
+    isStorePortfoliosOpen = true;
+  };
+
+  const onStorePortfoliosClose = () => {
+    isStorePortfoliosOpen = false;
+  };
+
+  const onPortfoliosStore = (request: StorePortfoliosRequest) => {
+    console.log(request);
+    isStorePortfoliosOpen = false;
+  };
+
+  const onTagSave = (request: SaveTagRequest) => {
+    console.log(request);
   };
 
   onMount(() => {
     loadPortfolios();
   });
 </script>
+
+{#if isStorePortfoliosOpen}
+  <StorePortfoliosModal
+    {tags}
+    {usdPairs}
+    {onTagSave}
+    onStore={onPortfoliosStore}
+    onClose={onStorePortfoliosClose}
+  />
+{/if}
 
 {#if isLoading}
   <div class="flex size-full items-center justify-center">
@@ -76,12 +103,12 @@
 {:else}
   <div class="h-full min-h-max w-full min-w-max overflow-auto p-24">
     {#if groupedPortfolios.size === 0}
-      <EmptyView {onSavePortfolioOpen} />
+      <EmptyView {onStorePortfoliosOpen} />
     {:else}
       <FilledView
         {groupedPortfolios}
         {untaggedPortfolios}
-        {onSavePortfolioOpen}
+        {onStorePortfoliosOpen}
       />
     {/if}
   </div>
