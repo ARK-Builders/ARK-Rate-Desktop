@@ -26,12 +26,12 @@
   let pinnedPairGroups: PairGroup[] = [];
   let unpinnedPairGroups: PairGroup[] = [];
 
-  const loadPairGroups = () => {
+  const loadPairGroups = async (): Promise<void> => {
     isLoading = true;
     usdPairs = [];
     pinnedPairGroups = [];
     unpinnedPairGroups = [];
-    invoke('view_pair_groups')
+    return invoke('view_pair_groups')
       .then((rawResponse) => {
         const response: ViewPairGroupsResponse = JSON.parse(rawResponse as string);
         for (const pair of response['usd_pairs']) {
@@ -69,9 +69,8 @@
     isSavePairGroupOpen = false;
   };
 
-  const onPairGroupSave = (request: SavePairGroupRequest) => {
-    isLoading = true;
-    invoke('save_pair_group', { request: JSON.stringify(request) })
+  const onPairGroupSave = async (request: SavePairGroupRequest): Promise<void> => {
+    return invoke('save_pair_group', { request: JSON.stringify(request) })
       .then(() => {
         $toasts = [
           ...$toasts,
@@ -81,6 +80,8 @@
             message: 'Pair saved successfully!',
           },
         ];
+        isSavePairGroupOpen = false;
+        return loadPairGroups();
       })
       .catch((err) => {
         console.error(err);
@@ -92,16 +93,11 @@
             message: 'Unexpected error saving pair...',
           },
         ];
-      })
-      .finally(() => {
-        loadPairGroups();
-        isSavePairGroupOpen = false;
       });
   };
 
-  const onPairGroupPinToggle = (pairGroup: PairGroup) => {
-    isLoading = true;
-    invoke('update_pair_group', {
+  const onPairGroupPinToggle = async (pairGroup: PairGroup): Promise<void> => {
+    return invoke('update_pair_group', {
       request: JSON.stringify({
         pair_group: {
           id: pairGroup.id,
@@ -125,6 +121,7 @@
             message: 'Pair pin successfully updated!',
           },
         ];
+        return loadPairGroups();
       })
       .catch((err) => {
         console.error(err);
@@ -136,9 +133,6 @@
             message: 'Unexpected error updating pair pin...',
           },
         ];
-      })
-      .finally(() => {
-        loadPairGroups();
       });
   };
 
@@ -150,9 +144,8 @@
     pairGroupToUpdate = undefined;
   };
 
-  const onPairGroupUpdate = (request: UpdatePairGroupRequest) => {
-    isLoading = true;
-    invoke('update_pair_group', { request: JSON.stringify(request) })
+  const onPairGroupUpdate = async (request: UpdatePairGroupRequest): Promise<void> => {
+    return invoke('update_pair_group', { request: JSON.stringify(request) })
       .then(() => {
         $toasts = [
           ...$toasts,
@@ -162,6 +155,8 @@
             message: 'Pair updated successfully!',
           },
         ];
+        pairGroupToUpdate = undefined;
+        return loadPairGroups();
       })
       .catch((err) => {
         console.error(err);
@@ -173,10 +168,6 @@
             message: 'Unexpected error updating pair group...',
           },
         ];
-      })
-      .finally(() => {
-        loadPairGroups();
-        pairGroupToUpdate = undefined;
       });
   };
 
@@ -188,9 +179,8 @@
     pairGroupToDelete = undefined;
   };
 
-  const onPairGroupDelete = (request: DeletePairGroupRequest) => {
-    isLoading = true;
-    invoke('delete_pair_group', { request: JSON.stringify(request) })
+  const onPairGroupDelete = async (request: DeletePairGroupRequest): Promise<void> => {
+    return invoke('delete_pair_group', { request: JSON.stringify(request) })
       .then(() => {
         $toasts = [
           ...$toasts,
@@ -200,6 +190,8 @@
             message: 'Pair updated successfully!',
           },
         ];
+        pairGroupToDelete = undefined;
+        return loadPairGroups();
       })
       .catch((err) => {
         console.error(err);
@@ -211,10 +203,6 @@
             message: 'Unexpected error updating pair group...',
           },
         ];
-      })
-      .finally(() => {
-        loadPairGroups();
-        pairGroupToDelete = undefined;
       });
   };
 
