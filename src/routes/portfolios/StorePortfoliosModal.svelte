@@ -15,8 +15,8 @@
   export let usdPairs: USDPair[];
 
   export let onClose: () => void;
-  export let onTagSave: (request: SaveTagRequest) => void;
-  export let onStore: (request: StorePortfoliosRequest) => void;
+  export let onTagSave: (request: SaveTagRequest) => Promise<void>;
+  export let onStore: (request: StorePortfoliosRequest) => Promise<void>;
 
   let isLoading = false;
   let isDisabled = false;
@@ -105,18 +105,27 @@
   />
 {/if}
 
-<Modal
-  open={!isSaveTagOpen}
-  size="xs"
-  title="Add New Assets"
-  classDialog="absolute max-h-screen"
-  on:close={isSaveTagOpen ? undefined : onClose}
->
-  {#if isLoading}
+{#if isLoading}
+  <Modal
+    dismissable={false}
+    open
+    size="xs"
+    title="Add New Assets"
+    classDialog="absolute max-h-screen"
+    on:close={onClose}
+  >
     <div class="flex size-full items-center justify-center">
       <Spinner class="size-16" />
     </div>
-  {:else}
+  </Modal>
+{:else}
+  <Modal
+    open={!isSaveTagOpen}
+    size="xs"
+    title="Add New Assets"
+    classDialog="absolute max-h-screen"
+    on:close={isSaveTagOpen ? undefined : onClose}
+  >
     <form class="flex flex-col items-start gap-4 pb-44">
       <div class="flex w-full flex-col gap-4">
         {#each insertedAssets as insertedAsset, i}
@@ -197,36 +206,38 @@
         </div>
       </MultiSelect>
     </form>
-  {/if}
-  <div
-    slot="footer"
-    class="flex w-full justify-end gap-4"
-  >
-    <Button
-      color="light"
-      on:click={onClose}
+    <div
+      slot="footer"
+      class="flex w-full justify-end gap-4"
     >
-      Cancel
-    </Button>
-    <Button
-      disabled={isDisabled || isLoading}
-      color="primary"
-      on:click={() => {
-        isLoading = true;
-        onStore({
-          tag: insertedTag
-            ? {
-                id: insertedTag,
-              }
-            : undefined,
-          assets: insertedAssets.map((ia) => ({
-            coin: ia[0],
-            quantity: parseFloat(ia[1]),
-          })),
-        });
-      }}
-    >
-      Save Changes
-    </Button>
-  </div>
-</Modal>
+      <Button
+        color="light"
+        on:click={onClose}
+      >
+        Cancel
+      </Button>
+      <Button
+        disabled={isDisabled}
+        color="primary"
+        on:click={() => {
+          isLoading = true;
+          onStore({
+            tag: insertedTag
+              ? {
+                  id: insertedTag,
+                }
+              : undefined,
+            assets: insertedAssets.map((ia) => ({
+              coin: ia[0],
+              quantity: parseFloat(ia[1]),
+            })),
+          }).finally(() => {
+            isLoading = false;
+          });
+        }}
+      >
+        Save Changes
+      </Button>
+    </div>
+  </Modal>
+{/if}

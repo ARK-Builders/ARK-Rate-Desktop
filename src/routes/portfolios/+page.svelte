@@ -23,13 +23,13 @@
   let untaggedPortfolios: Portfolio[] = [];
   let groupedPortfolios: Map<Tag, Portfolio[]> = new Map();
 
-  const loadPortfolios = () => {
+  const loadPortfolios = async (): Promise<void> => {
     isLoading = true;
     tags = [];
     usdPairs = [];
     untaggedPortfolios = [];
     groupedPortfolios = new Map();
-    invoke('view_portfolios')
+    return invoke('view_portfolios')
       .then((rawResponse) => {
         const response: ViewPortfoliosResponse = JSON.parse(rawResponse as string);
         tags = response.tags;
@@ -73,13 +73,58 @@
     isStorePortfoliosOpen = false;
   };
 
-  const onPortfoliosStore = (request: StorePortfoliosRequest) => {
-    console.log(request);
-    isStorePortfoliosOpen = false;
+  const onPortfoliosStore = async (request: StorePortfoliosRequest): Promise<void> => {
+    return invoke('store_portfolios', { request: JSON.stringify(request) })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Pair updated successfully!',
+          },
+        ];
+        isStorePortfoliosOpen = false;
+        return loadPortfolios();
+      })
+      .catch((err) => {
+        const response: ErrorResponse = JSON.parse(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: response.message,
+          },
+        ];
+      });
   };
 
-  const onTagSave = (request: SaveTagRequest) => {
-    console.log(request);
+  const onTagSave = async (request: SaveTagRequest): Promise<void> => {
+    return invoke('store_portfolios', { request: JSON.stringify(request) })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Pair updated successfully!',
+          },
+        ];
+        isStorePortfoliosOpen = false;
+        return loadPortfolios();
+      })
+      .catch((err) => {
+        const response: ErrorResponse = JSON.parse(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: response.message,
+          },
+        ];
+      });
   };
 
   onMount(() => {
