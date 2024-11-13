@@ -17,6 +17,11 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Setup Cargo Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v4.1.0
         with:
@@ -39,5 +44,17 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: ark-rate-desktop.AppImage
-          path: ./src-tauri/target/release/bundle/appimage/ark-rate-desktop_*_amd64.AppImage
+          name: Ark-Rate-Desktop.AppImage
+          path: ./src-tauri/target/release/bundle/appimage/Ark-Rate-Desktop*.AppImage
+
+      - name: Upload deb
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: Ark-Rate-Desktop.deb
+          path: ./src-tauri/target/release/bundle/deb/Ark-Rate-Desktop*.deb
+
+      - name: Upload rpm
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: Ark-Rate-Desktop.rpm
+          path: ./src-tauri/target/release/bundle/rpm/Ark-Rate-Desktop*.rpm
