@@ -81,7 +81,7 @@
           {
             id: crypto.randomUUID(),
             type: 'success',
-            message: 'Pair updated successfully!',
+            message: 'Assets saved successfully!',
           },
         ];
         isStorePortfoliosOpen = false;
@@ -101,17 +101,16 @@
   };
 
   const onTagSave = async (request: SaveTagRequest): Promise<void> => {
-    return invoke('store_portfolios', { request: JSON.stringify(request) })
+    return invoke('save_tag', { request: JSON.stringify(request) })
       .then(() => {
         $toasts = [
           ...$toasts,
           {
             id: crypto.randomUUID(),
             type: 'success',
-            message: 'Pair updated successfully!',
+            message: 'Tag saved successfully!',
           },
         ];
-        isStorePortfoliosOpen = false;
         return loadPortfolios();
       })
       .catch((err) => {
@@ -148,7 +147,7 @@
   </div>
 {:else}
   <div class="h-full min-h-max w-full min-w-max overflow-auto p-24">
-    {#if groupedPortfolios.size === 0}
+    {#if groupedPortfolios.size === 0 && untaggedPortfolios.length === 0}
       <EmptyView {onStorePortfoliosOpen} />
     {:else}
       <FilledView

@@ -84,23 +84,27 @@
 
   onMount(() => {
     coinOptions = usdPairs.map((p) => p.comparison);
-    tagOptions = [
-      {
-        value: 'new_tag',
-        label: 'New tag',
-      },
-      ...tags.map((t) => ({
-        value: t.id,
-        label: t.name,
-      })),
-    ];
     addInsertedAsset();
   });
+
+  $: tagOptions = [
+    {
+      value: 'new_tag',
+      label: 'New tag',
+    },
+    ...tags.map((t) => ({
+      value: t.id,
+      label: t.name,
+    })),
+  ];
 </script>
 
 {#if isSaveTagOpen}
   <SaveTagModal
-    onSave={onTagSave}
+    onSave={async (request) =>
+      onTagSave(request).finally(() => {
+        isSaveTagOpen = false;
+      })}
     onClose={onSaveTagClose}
   />
 {/if}
@@ -182,6 +186,7 @@
         placeholder="Add tag"
         maxSelect={1}
         minSelect={1}
+        maxOptions={4}
         inputClass="h-10"
         liOptionClass="!p-0"
         liSelectedClass="!bg-transparent"
@@ -200,9 +205,11 @@
         {/if}
         <div
           slot="expand-icon"
-          class="p-2"
+          class={insertedTag ? '' : 'p-2'}
         >
-          <FolderClosed />
+          {#if !insertedTag}
+            <FolderClosed />
+          {/if}
         </div>
       </MultiSelect>
     </form>
