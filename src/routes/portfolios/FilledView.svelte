@@ -121,7 +121,7 @@
             }}
           >
             <!-- Asset -->
-            <div class="flex items-center justify-between border-b px-2 py-6">
+            <div class="flex items-center justify-between border-b px-2 py-6 text-left">
               <div class="flex gap-2">
                 <div class="size-16 overflow-hidden rounded-full border-2 border-white">
                   <div class="flex size-full items-center justify-center bg-gray-600 text-center">
