@@ -180,7 +180,7 @@
     classDialog="absolute max-h-screen"
     on:close={onClose}
   >
-    <form class="flex flex-col">
+    <form class="flex flex-col pb-44">
       <Label class="space-y-2">
         <span>From</span>
         <div class="flex">
@@ -189,6 +189,7 @@
             selected={[pairGroup.pairs[0].base]}
             maxSelect={1}
             minSelect={1}
+            maxOptions={7}
             ulSelectedClass="!w-28"
             outerDivClass="!rounded-r-none"
             liSelectedClass="!bg-transparent"
@@ -221,10 +222,11 @@
               <div class="flex flex-grow">
                 <MultiSelect
                   {options}
-                  maxSelect={1}
-                  minSelect={1}
                   disabled={isDisabled}
                   selected={[pair.comparison]}
+                  maxSelect={1}
+                  minSelect={1}
+                  maxOptions={7}
                   ulSelectedClass="!w-28"
                   outerDivClass="!rounded-r-none"
                   liSelectedClass="!bg-transparent"
