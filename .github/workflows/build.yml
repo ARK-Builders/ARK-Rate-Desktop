@@ -41,23 +41,23 @@ jobs:
       - name: Build Release version
         run: yarn tauri build
 
-      - name: Upload AppImage
+      - name: Upload amd64 deb
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: Ark-Rate-Desktop.AppImage
-          path: ./src-tauri/target/release/bundle/appimage/Ark-Rate-Desktop*.AppImage
+          name: Ark-Rate-Desktop_amd64.deb
+          path: ./src-tauri/target/release/bundle/deb/Ark-Rate-Desktop*amd64*.deb
 
-      - name: Upload deb
+      - name: Upload x86_64 rpm
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: Ark-Rate-Desktop.deb
-          path: ./src-tauri/target/release/bundle/deb/Ark-Rate-Desktop*.deb
+          name: Ark-Rate-Desktop_x86_64.rpm
+          path: ./src-tauri/target/release/bundle/rpm/Ark-Rate-Desktop*x86_64*.rpm
 
-      - name: Upload rpm
+      - name: Upload amd64 AppImage
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: Ark-Rate-Desktop.rpm
-          path: ./src-tauri/target/release/bundle/rpm/Ark-Rate-Desktop*.rpm
+          name: Ark-Rate-Desktop_amd64.AppImage
+          path: ./src-tauri/target/release/bundle/appimage/Ark-Rate-Desktop*amd64*.AppImage
 
   macos:
     runs-on: macos-latest
@@ -92,11 +92,11 @@ jobs:
           name: Ark-Rate-Desktop.app
           path: ./src-tauri/target/release/bundle/macos/Ark-Rate-Desktop*.app
 
-      - name: Upload dmg
+      - name: Upload aarch64 dmg
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: Ark-Rate-Desktop.dmg
-          path: ./src-tauri/target/release/bundle/dmg/Ark-Rate-Desktop*.dmg
+          name: Ark-Rate-Desktop_aarch64.dmg
+          path: ./src-tauri/target/release/bundle/dmg/Ark-Rate-Desktop*aarch64*.dmg
 
   windows:
     runs-on: windows-latest
@@ -124,3 +124,15 @@ jobs:
 
       - name: Build Release version
         run: yarn tauri build
+
+      - name: Upload x64 msi
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: Ark-Rate-Desktop_x64.msi
+          path: ./src-tauri/target/release/bundle/msi/Ark-Rate-Desktop*x64*.msi
+
+      - name: Upload x64 exe
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: Ark-Rate-Desktop_x64.exe
+          path: ./src-tauri/target/release/bundle/nsis/Ark-Rate-Desktop*x64*.exe
