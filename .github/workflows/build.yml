@@ -85,3 +85,42 @@ jobs:
 
       - name: Build Release version
         run: yarn tauri build
+
+      - name: Upload app
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: Ark-Rate-Desktop.app
+          path: ./src-tauri/target/release/bundle/macos/Ark-Rate-Desktop*.app
+
+      - name: Upload dmg
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: Ark-Rate-Desktop.dmg
+          path: ./src-tauri/target/release/bundle/dmg/Ark-Rate-Desktop*.dmg
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Setup Cargo Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: '23.x'
+
+      - name: Fetch Node.js Dependencies
+        run: yarn
+
+      - name: Build Release version
+        run: yarn tauri build
