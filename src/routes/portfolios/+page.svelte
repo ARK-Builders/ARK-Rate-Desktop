@@ -9,6 +9,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { Spinner } from 'flowbite-svelte';
   import { onMount } from 'svelte';
+  import DeleteAssetModal from './DeleteAssetModal.svelte';
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
   import StorePortfoliosModal from './StorePortfoliosModal.svelte';
@@ -153,7 +154,7 @@
     assetToDelete = undefined;
   };
 
-  const onDeleteAsset = (request: DeleteAssetRequest) => {
+  const onAssetDelete = async (request: DeleteAssetRequest): Promise<void> => {
     console.log(request);
   };
 
@@ -180,7 +181,11 @@
     onClose={onUpdatePortfolioClose}
   />
 {:else if assetToDelete}
-  <!-- TODO -->
+  <DeleteAssetModal
+    asset={assetToDelete}
+    onDelete={onAssetDelete}
+    onClose={onDeleteAssetClose}
+  />
 {/if}
 
 {#if isLoading}
