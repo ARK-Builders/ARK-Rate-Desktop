@@ -18,9 +18,9 @@ jobs:
           components: rustfmt, clippy
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3.2.0
+        uses: actions/setup-node@v4.1.0
         with:
-          node-version: '16.x'
+          node-version: '23.x'
 
       - name: Install dependencies
         run: |
