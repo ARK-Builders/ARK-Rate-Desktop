@@ -11,6 +11,10 @@
   type Tag = ViewPortfoliosResponse['tags'][0];
   type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
   type Portfolio = ViewPortfoliosResponse['portfolios'][0];
+  type InsertedTag = {
+    id: string;
+    name: string;
+  };
   type InsertedAsset = {
     id: string;
     coin: string;
@@ -32,7 +36,7 @@
   let coinOptions: string[] = [];
   let tagOptions: ObjectOption[] = [];
 
-  let insertedTag: string | undefined;
+  let insertedTag: InsertedTag | undefined;
   let insertedAsset: InsertedAsset = {
     id: '',
     coin: '',
@@ -52,7 +56,10 @@
       insertedTag = undefined;
       onSaveTagOpen();
     } else {
-      insertedTag = tagOption.value as string;
+      insertedTag = {
+        id: tagOption.value as string,
+        name: tagOption.label as string,
+      };
     }
   };
 
@@ -78,7 +85,13 @@
 
   onMount(() => {
     coinOptions = usdPairs.map((p) => p.comparison);
-    insertedTag = portfolio.tags.length > 0 ? portfolio.tags[0].id : undefined;
+    insertedTag =
+      portfolio.tags.length > 0
+        ? {
+            id: portfolio.tags[0].id,
+            name: portfolio.tags[0].name,
+          }
+        : undefined;
     insertedAsset = {
       id: portfolio.asset.id,
       coin: portfolio.asset.coin,
@@ -152,6 +165,14 @@
       <MultiSelect
         let:option={tagOption}
         options={tagOptions}
+        selected={insertedTag
+          ? [
+              {
+                value: insertedTag.id,
+                label: insertedTag.name,
+              },
+            ]
+          : []}
         placeholder="Add tag"
         maxSelect={1}
         minSelect={1}
@@ -198,7 +219,7 @@
         on:click={() => {
           isLoading = true;
           onUpdate({
-            tag_ids: insertedTag ? [insertedTag] : [],
+            tag_ids: insertedTag ? [insertedTag.id] : [],
             asset: {
               id: insertedAsset.id,
               coin: insertedAsset.coin,

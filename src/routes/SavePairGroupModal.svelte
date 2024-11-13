@@ -19,6 +19,7 @@
   let isDisabled = false;
   let isAddPairDisabled = false;
 
+  // DEPRECATED: it is better to use individual, isolated, variables as field values instead
   let pairGroup: PairGroup;
   let options: string[] = [];
 

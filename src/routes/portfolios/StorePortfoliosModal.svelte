@@ -10,6 +10,14 @@
 
   type Tag = ViewPortfoliosResponse['tags'][0];
   type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
+  type InsertedTag = {
+    id: string;
+    name: string;
+  };
+  type InsertedAsset = {
+    coin: string;
+    quantity: string;
+  };
 
   export let tags: Tag[];
   export let usdPairs: USDPair[];
@@ -26,8 +34,8 @@
   let coinOptions: string[] = [];
   let tagOptions: ObjectOption[] = [];
 
-  let insertedTag: string | undefined;
-  let insertedAssets: [string, string][] = [];
+  let insertedTag: InsertedTag | undefined;
+  let insertedAssets: InsertedAsset[] = [];
 
   const getRandomCoin = (): string => {
     const randomIndex = Math.floor(Math.random() * usdPairs.length);
@@ -36,13 +44,19 @@
 
   const removeInsertedAsset = (i: number) => {
     insertedAssets = insertedAssets.filter((_, j) => j !== i);
-    if (insertedAssets.every((ia) => ia[0].trim().length > 0)) {
+    if (insertedAssets.every((ia) => ia.coin.trim().length > 0)) {
       isAddInsertedAssedDisabled = false;
     }
   };
 
   const addInsertedAsset = () => {
-    insertedAssets = [...insertedAssets, [getRandomCoin(), '1']];
+    insertedAssets = [
+      ...insertedAssets,
+      {
+        coin: getRandomCoin(),
+        quantity: '1',
+      },
+    ];
   };
 
   const onInsertedTagSelect = (event: CustomEvent) => {
@@ -58,20 +72,23 @@
       insertedTag = undefined;
       onSaveTagOpen();
     } else {
-      insertedTag = tagOption.value as string;
+      insertedTag = {
+        id: tagOption.value as string,
+        name: tagOption.label as string,
+      };
     }
   };
 
-  const onInsertedAssetCoinChange = (insertedAsset: [string, string]) => (event: CustomEvent) => {
+  const onInsertedAssetCoinChange = (insertedAsset: InsertedAsset) => (event: CustomEvent) => {
     const detail = event.detail;
     if (!detail) return;
     if (detail.type === 'remove') {
       isAddInsertedAssedDisabled = true;
-      insertedAsset[0] = '';
+      insertedAsset.coin = '';
       return;
     }
     isAddInsertedAssedDisabled = false;
-    insertedAsset[0] = detail.option;
+    insertedAsset.coin = detail.option;
   };
 
   const onSaveTagOpen = () => {
@@ -138,7 +155,7 @@
               <MultiSelect
                 options={coinOptions}
                 disabled={isDisabled}
-                selected={[insertedAsset[0]]}
+                selected={[insertedAsset.coin]}
                 maxSelect={1}
                 minSelect={1}
                 maxOptions={7}
@@ -149,7 +166,7 @@
                 on:change={onInsertedAssetCoinChange(insertedAsset)}
               />
               <Input
-                bind:value={insertedAsset[1]}
+                bind:value={insertedAsset.quantity}
                 disabled={isDisabled}
                 type="text"
                 class="rounded-l-none"
@@ -231,12 +248,12 @@
           onStore({
             tag: insertedTag
               ? {
-                  id: insertedTag,
+                  id: insertedTag.id,
                 }
               : undefined,
             assets: insertedAssets.map((ia) => ({
-              coin: ia[0],
-              quantity: parseFloat(ia[1]),
+              coin: ia.coin,
+              quantity: parseFloat(ia.quantity),
             })),
           }).finally(() => {
             isLoading = false;

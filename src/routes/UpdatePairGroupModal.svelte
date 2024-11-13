@@ -11,6 +11,7 @@
   type Pair = PairGroup['pairs'][0];
 
   export let usdPairs: USDPair[];
+  // DEPRECATED: it is better to use individual, isolated, variables as field values instead
   export let pairGroup: PairGroup;
 
   export let onClose: () => void;
