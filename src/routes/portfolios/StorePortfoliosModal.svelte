@@ -29,7 +29,7 @@
   let isLoading = false;
   let isDisabled = false;
   let isSaveTagOpen = false;
-  let isAddInsertedAssedDisabled = false;
+  let isAddInsertedAssetDisabled = false;
 
   let coinOptions: string[] = [];
   let tagOptions: ObjectOption[] = [];
@@ -45,7 +45,7 @@
   const removeInsertedAsset = (i: number) => {
     insertedAssets = insertedAssets.filter((_, j) => j !== i);
     if (insertedAssets.every((ia) => ia.coin.trim().length > 0)) {
-      isAddInsertedAssedDisabled = false;
+      isAddInsertedAssetDisabled = false;
     }
   };
 
@@ -83,11 +83,11 @@
     const detail = event.detail;
     if (!detail) return;
     if (detail.type === 'remove') {
-      isAddInsertedAssedDisabled = true;
+      isAddInsertedAssetDisabled = true;
       insertedAsset.coin = '';
       return;
     }
-    isAddInsertedAssedDisabled = false;
+    isAddInsertedAssetDisabled = false;
     insertedAsset.coin = detail.option;
   };
 
@@ -186,7 +186,7 @@
         {/each}
         <div class="flex justify-start">
           <Button
-            disabled={isDisabled || isAddInsertedAssedDisabled}
+            disabled={isDisabled || isAddInsertedAssetDisabled}
             size="xs"
             color="light"
             class="flex gap-2"
