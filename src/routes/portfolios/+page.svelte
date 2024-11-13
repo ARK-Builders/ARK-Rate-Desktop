@@ -1,7 +1,9 @@
 <script lang="ts">
+  import type { DeleteAssetRequest } from '$lib/business/interactors/delete_asset/DeleteAssetRequest';
   import type { ErrorResponse } from '$lib/business/interactors/ErrorResponse';
   import type { SaveTagRequest } from '$lib/business/interactors/save_tag/SaveTagRequest';
   import type { StorePortfoliosRequest } from '$lib/business/interactors/store_portfolios/StorePortfoliosRequest';
+  import type { UpdatePortfolioRequest } from '$lib/business/interactors/update_portfolio/UpdatePortfolioRequest';
   import type { ViewPortfoliosResponse } from '$lib/business/interactors/view_portfolios/ViewPortfoliosResponse';
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
@@ -10,6 +12,7 @@
   import EmptyView from './EmptyView.svelte';
   import FilledView from './FilledView.svelte';
   import StorePortfoliosModal from './StorePortfoliosModal.svelte';
+  import UpdatePortfolioModal from './UpdatePortfolioModal.svelte';
 
   type Tag = ViewPortfoliosResponse['tags'][0];
   type USDPair = ViewPortfoliosResponse['usd_pairs'][0];
@@ -17,6 +20,9 @@
 
   let isLoading = false;
   let isStorePortfoliosOpen = false;
+
+  let portfolioToUpdate: Portfolio | undefined;
+  let assetToDelete: Portfolio['asset'] | undefined;
 
   let tags: Tag[] = [];
   let usdPairs: USDPair[] = [];
@@ -127,6 +133,30 @@
       });
   };
 
+  const onUpdatePortfolioOpen = (portfolio: Portfolio) => {
+    portfolioToUpdate = structuredClone(portfolio);
+  };
+
+  const onUpdatePortfolioClose = () => {
+    portfolioToUpdate = undefined;
+  };
+
+  const onPortfolioUpdate = async (request: UpdatePortfolioRequest): Promise<void> => {
+    console.log(request);
+  };
+
+  const onDeleteAssetOpen = (portfolio: Portfolio) => {
+    assetToDelete = structuredClone(portfolio.asset);
+  };
+
+  const onDeleteAssetClose = () => {
+    assetToDelete = undefined;
+  };
+
+  const onDeleteAsset = (request: DeleteAssetRequest) => {
+    console.log(request);
+  };
+
   onMount(() => {
     loadPortfolios();
   });
@@ -140,6 +170,17 @@
     onStore={onPortfoliosStore}
     onClose={onStorePortfoliosClose}
   />
+{:else if portfolioToUpdate}
+  <UpdatePortfolioModal
+    portfolio={portfolioToUpdate}
+    {tags}
+    {usdPairs}
+    {onTagSave}
+    onUpdate={onPortfolioUpdate}
+    onClose={onUpdatePortfolioClose}
+  />
+{:else if assetToDelete}
+  <!-- TODO -->
 {/if}
 
 {#if isLoading}
@@ -154,7 +195,9 @@
       <FilledView
         {groupedPortfolios}
         {untaggedPortfolios}
+        {onDeleteAssetOpen}
         {onStorePortfoliosOpen}
+        {onUpdatePortfolioOpen}
       />
     {/if}
   </div>
