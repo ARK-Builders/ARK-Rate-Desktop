@@ -143,7 +143,30 @@
   };
 
   const onPortfolioUpdate = async (request: UpdatePortfolioRequest): Promise<void> => {
-    console.log(request);
+    return invoke('update_portfolio', { request: JSON.stringify(request) })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Portfolio updated successfully!',
+          },
+        ];
+        portfolioToUpdate = undefined;
+        return loadPortfolios();
+      })
+      .catch((err) => {
+        const response: ErrorResponse = JSON.parse(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: response.message,
+          },
+        ];
+      });
   };
 
   const onDeleteAssetOpen = (portfolio: Portfolio) => {
@@ -155,7 +178,30 @@
   };
 
   const onAssetDelete = async (request: DeleteAssetRequest): Promise<void> => {
-    console.log(request);
+    return invoke('delete_asset', { request: JSON.stringify(request) })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Asset deleted!',
+          },
+        ];
+        assetToDelete = undefined;
+        return loadPortfolios();
+      })
+      .catch((err) => {
+        const response: ErrorResponse = JSON.parse(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: response.message,
+          },
+        ];
+      });
   };
 
   onMount(() => {
