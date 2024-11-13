@@ -58,3 +58,30 @@ jobs:
         with:
           name: Ark-Rate-Desktop.rpm
           path: ./src-tauri/target/release/bundle/rpm/Ark-Rate-Desktop*.rpm
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Setup Cargo Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: '23.x'
+
+      - name: Fetch Node.js Dependencies
+        run: yarn
+
+      - name: Build Release version
+        run: yarn tauri build
