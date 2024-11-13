@@ -39,12 +39,13 @@
             untaggedPortfolios.push(p);
           } else {
             p.tags.forEach((t) => {
-              let portfolios = groupedPortfolios.get(t);
-              if (portfolios === undefined) {
-                portfolios = [];
-                groupedPortfolios.set(t, portfolios);
+              const foundKey = [...groupedPortfolios.keys()].find((k) => k.id === t.id);
+              if (foundKey === undefined) {
+                groupedPortfolios.set(t, [p]);
+              } else {
+                const portfolios = groupedPortfolios.get(foundKey)!;
+                portfolios.push(p);
               }
-              portfolios.push(p);
             });
           }
         });

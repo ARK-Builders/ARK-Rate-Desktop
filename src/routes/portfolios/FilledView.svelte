@@ -108,4 +108,112 @@
       </div>
     </div>
   </TabItem>
+  <TabItem title="Untagged">
+    <div class="flex flex-col">
+      <div class="flex flex-col items-start gap-2 border-b px-2 py-10">
+        <p class="text-gray-500 dark:text-gray-400">Total Assets</p>
+        <div class="flex gap-0.5 align-top">
+          <p class="text-2xl">$</p>
+          <p class="text-4xl">{getTotalUSDValue(untaggedPortfolios).toLocaleString()}</p>
+          {#if getTotalFluctuation(untaggedPortfolios) < 0}
+            <div class="flex text-red-500">
+              <ArrowDown class="size-5" />
+              <p>{(getTotalFluctuation(untaggedPortfolios) * 100).toLocaleString()}%</p>
+            </div>
+          {:else if getTotalFluctuation(untaggedPortfolios) > 0}
+            <div class="flex text-green-500">
+              <ArrowUp class="size-5" />
+              <p>{(getTotalFluctuation(untaggedPortfolios) * 100).toLocaleString()}%</p>
+            </div>
+          {/if}
+        </div>
+      </div>
+      <div class="flex flex-col">
+        {#each untaggedPortfolios as portfolio}
+          <!-- Asset -->
+          <div class="flex items-center justify-between border-b px-2 py-6">
+            <div class="flex gap-2">
+              <div class="size-16 overflow-hidden rounded-full border-2 border-white">
+                <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+                  <p class="text-xs text-white">{portfolio.asset.coin}</p>
+                </div>
+                <!-- <img
+                   alt="EUR Logo"
+                   class="size-full"
+                   src="images/fiat-currencies/EUR.png"
+               /> -->
+              </div>
+              <div class="flex flex-col justify-center">
+                <p>{portfolio.asset.coin}</p>
+                <p class="text-gray-500 dark:text-gray-400">{(1 / portfolio.asset.usd_value).toLocaleString()}</p>
+              </div>
+            </div>
+            <div class="flex flex-col text-end">
+              <p>${(portfolio.asset.usd_value * portfolio.asset.quantity).toLocaleString()}</p>
+              <p class="text-gray-500 dark:text-gray-400">
+                {portfolio.asset.quantity.toLocaleString()}
+                {portfolio.asset.coin}
+              </p>
+            </div>
+          </div>
+          <!--  -->
+        {/each}
+      </div>
+    </div>
+  </TabItem>
+  {#each groupedPortfolios.entries() as [tag, taggedPortfolios]}
+    <TabItem title={tag.name}>
+      <div class="flex flex-col">
+        <div class="flex flex-col items-start gap-2 border-b px-2 py-10">
+          <p class="text-gray-500 dark:text-gray-400">Total Assets</p>
+          <div class="flex gap-0.5 align-top">
+            <p class="text-2xl">$</p>
+            <p class="text-4xl">{getTotalUSDValue(taggedPortfolios).toLocaleString()}</p>
+            {#if getTotalFluctuation(taggedPortfolios) < 0}
+              <div class="flex text-red-500">
+                <ArrowDown class="size-5" />
+                <p>{(getTotalFluctuation(taggedPortfolios) * 100).toLocaleString()}%</p>
+              </div>
+            {:else if getTotalFluctuation(taggedPortfolios) > 0}
+              <div class="flex text-green-500">
+                <ArrowUp class="size-5" />
+                <p>{(getTotalFluctuation(taggedPortfolios) * 100).toLocaleString()}%</p>
+              </div>
+            {/if}
+          </div>
+        </div>
+        <div class="flex flex-col">
+          {#each taggedPortfolios as portfolio}
+            <!-- Asset -->
+            <div class="flex items-center justify-between border-b px-2 py-6">
+              <div class="flex gap-2">
+                <div class="size-16 overflow-hidden rounded-full border-2 border-white">
+                  <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+                    <p class="text-xs text-white">{portfolio.asset.coin}</p>
+                  </div>
+                  <!-- <img
+                   alt="EUR Logo"
+                   class="size-full"
+                   src="images/fiat-currencies/EUR.png"
+               /> -->
+                </div>
+                <div class="flex flex-col justify-center">
+                  <p>{portfolio.asset.coin}</p>
+                  <p class="text-gray-500 dark:text-gray-400">{(1 / portfolio.asset.usd_value).toLocaleString()}</p>
+                </div>
+              </div>
+              <div class="flex flex-col text-end">
+                <p>${(portfolio.asset.usd_value * portfolio.asset.quantity).toLocaleString()}</p>
+                <p class="text-gray-500 dark:text-gray-400">
+                  {portfolio.asset.quantity.toLocaleString()}
+                  {portfolio.asset.coin}
+                </p>
+              </div>
+            </div>
+            <!--  -->
+          {/each}
+        </div>
+      </div>
+    </TabItem>
+  {/each}
 </Tabs>
