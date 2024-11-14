@@ -26,11 +26,16 @@ impl CoinMarket for GithubCoinMarket {
     async fn fetch_usd_pairs(&mut self) -> Result<Vec<Pair>, Error> {
         let usd_fiat_pairs: Vec<Pair> = fetch_usd_fiat_pairs(&self.fiat_rates_url).await?;
         let usd_crypto_pairs: Vec<Pair> = fetch_usd_crypto_pairs(&self.crypto_rates_url).await?;
-        return Ok(usd_fiat_pairs
-            .iter()
-            .chain(&usd_crypto_pairs)
-            .cloned()
-            .collect());
+        let usd_pairs = usd_fiat_pairs.iter().chain(&usd_crypto_pairs);
+        let mut non_repeated_usd_pairs: Vec<Pair> = vec![];
+        for usd_pair in usd_pairs {
+            if !non_repeated_usd_pairs.iter().any(|p| {
+                return p.id != usd_pair.id && p.comparison == usd_pair.comparison;
+            }) {
+                non_repeated_usd_pairs.push(usd_pair.clone());
+            }
+        }
+        return Ok(non_repeated_usd_pairs);
     }
 }
 
