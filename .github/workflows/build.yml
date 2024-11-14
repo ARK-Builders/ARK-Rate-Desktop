@@ -71,18 +71,18 @@ jobs:
         if: matrix.settings.platform == 'ubuntu-22.04'
         with:
           name: ark-rate-desktop_linux.zip
-          path: ./target/release/bundle
+          path: ./target/release/bundle/**
 
       - name: Upload MacOS Build Bundles
         uses: actions/upload-artifact@v4
         if: matrix.settings.platform == 'macos-latest'
         with:
           name: ark-rate-desktop_macos.zip
-          path: ./target/*/release/bundle
+          path: ./target/*/release/bundle/**
 
       - name: Upload Windows Build Bundles
         uses: actions/upload-artifact@v4
         if: matrix.settings.platform == 'windows-latest'
         with:
           name: ark-rate-desktop_windows.zip
-          path: ./target/release/bundle
+          path: ./target/release/bundle/**
