@@ -13,12 +13,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
+          - platform: 'ubuntu-22.04'
             args: ''
+          # TODO: maybe target specifically ARM based macs and Intel based macs to reduce built bundle size
+          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          #   args: '--target aarch64-apple-darwin'
+          # - platform: 'macos-latest' # for Intel based macs.
+          #   args: '--target x86_64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target universal-apple-darwin'
           - platform: 'windows-latest'
             args: ''
 
@@ -50,9 +53,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      # TODO: upload each bundle type individually
+      - name: Upload Linux Build Bundles
+        if: matrix.settings.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ark-rate-desktop_linux.zip
+          path: ./target/release/bundle
+
+      - name: Upload MacOS Build Bundles
+        if: matrix.settings.platform == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ark-rate-desktop_macos.zip
+          path: ./target/*/release/bundle
+
+      - name: Upload Windows Build Bundles
+        if: matrix.settings.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ark-rate-desktop_windows.zip
+          path: ./target/release/bundle
