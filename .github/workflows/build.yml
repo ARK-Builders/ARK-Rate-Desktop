@@ -61,6 +61,7 @@ jobs:
 
   macos:
     runs-on: macos-latest
+    args: '--target universal-apple-darwin'
 
     steps:
       - uses: actions/checkout@v4
