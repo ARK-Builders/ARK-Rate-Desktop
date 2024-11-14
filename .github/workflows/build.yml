@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -54,7 +54,7 @@ jobs:
         uses: swatinem/rust-cache@v2
 
       - name: install frontend dependencies
-        run: yarn install
+        run: npm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
