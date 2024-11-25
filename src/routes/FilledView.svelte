@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
-  import ContextMenu from '$lib/ui/global/components/context_menu/ContextMenu.svelte';
   import { Button, Heading } from 'flowbite-svelte';
-  import { Coins, Eye, Pencil, Pin, PinOff, Plus, Trash } from 'lucide-svelte';
-  import PairGroupView from './PairGroupView.svelte';
+  import { Coins, Eye, Pin, Plus } from 'lucide-svelte';
+  import PinnedPairGroupsList from './PinnedPairGroupsList.svelte';
+  import UnpinnedPairGroupsList from './UnpinnedPairGroupsList.svelte';
 
   type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
 
@@ -15,16 +15,12 @@
   export let onUpdatePairGroupOpen: (pairGroup: PairGroup) => void;
   export let onDeletePairGroupOpen: (pairGroup: PairGroup) => void;
 
-  let contextMenu:
-    | {
-        id: string;
-        x: number;
-        y: number;
-      }
-    | undefined;
-</script>
+  let isPinnedPairGroupsMatrix = false;
 
-<svelte:window on:click={() => (contextMenu = undefined)} />
+  const togglePinnedPairGroupsMatrix = () => {
+    isPinnedPairGroupsMatrix = !isPinnedPairGroupsMatrix;
+  };
+</script>
 
 <div class="flex flex-col gap-16">
   <div class="flex items-center justify-between gap-12">
@@ -55,97 +51,37 @@
           <Button
             size="xs"
             color="none"
+            on:click={togglePinnedPairGroupsMatrix}
           >
             <Eye class="size-5" />
           </Button>
         </div>
         <Pin class="size-5 rotate-45 fill-gray-500" />
       </div>
-      {#each pinnedPairGroups as pairGroup}
-        {#if pairGroup.id === contextMenu?.id}
-          <ContextMenu
-            menuItems={[
-              {
-                label: 'Unpin',
-                icon: PinOff,
-                onClick: () => onPairGroupPinToggle(pairGroup),
-              },
-              {
-                label: 'Edit',
-                icon: Pencil,
-                onClick: () => onUpdatePairGroupOpen(pairGroup),
-              },
-              {
-                label: 'Delete',
-                icon: Trash,
-                class: 'text-red-600',
-                onClick: () => onDeletePairGroupOpen(pairGroup),
-              },
-            ]}
-            position={{
-              x: contextMenu.x,
-              y: contextMenu.y,
-            }}
-          />
-        {/if}
-        <button
-          on:contextmenu|preventDefault={(event) => {
-            contextMenu = {
-              id: pairGroup.id,
-              x: event.clientX,
-              y: event.clientY,
-            };
-          }}
-        >
-          <PairGroupView {pairGroup} />
-        </button>
-      {/each}
+      {#if isPinnedPairGroupsMatrix}
+        <!-- content here -->
+      {:else}
+        <PinnedPairGroupsList
+          pairGroups={pinnedPairGroups}
+          {onPairGroupPinToggle}
+          {onDeletePairGroupOpen}
+          {onUpdatePairGroupOpen}
+        />
+      {/if}
     </div>
   {/if}
+  <!-- UNPINNED PAIR GROUPS -->
   {#if unpinnedPairGroups.length > 0}
     <div class="flex flex-col">
       <div class="flex items-center justify-between gap-12 border-b py-3 text-gray-500">
         <p class="font-bold">Calculated pairs</p>
       </div>
-      {#each unpinnedPairGroups as pairGroup}
-        {#if pairGroup.id === contextMenu?.id}
-          <ContextMenu
-            menuItems={[
-              {
-                label: 'Pin',
-                icon: Pin,
-                onClick: () => onPairGroupPinToggle(pairGroup),
-              },
-              {
-                label: 'Edit',
-                icon: Pencil,
-                onClick: () => onUpdatePairGroupOpen(pairGroup),
-              },
-              {
-                label: 'Delete',
-                icon: Trash,
-                class: 'text-red-600',
-                onClick: () => onDeletePairGroupOpen(pairGroup),
-              },
-            ]}
-            position={{
-              x: contextMenu.x,
-              y: contextMenu.y,
-            }}
-          />
-        {/if}
-        <button
-          on:contextmenu|preventDefault={(event) => {
-            contextMenu = {
-              id: pairGroup.id,
-              x: event.clientX,
-              y: event.clientY,
-            };
-          }}
-        >
-          <PairGroupView {pairGroup} />
-        </button>
-      {/each}
+      <UnpinnedPairGroupsList
+        pairGroups={unpinnedPairGroups}
+        {onPairGroupPinToggle}
+        {onDeletePairGroupOpen}
+        {onUpdatePairGroupOpen}
+      />
     </div>
   {/if}
 </div>
