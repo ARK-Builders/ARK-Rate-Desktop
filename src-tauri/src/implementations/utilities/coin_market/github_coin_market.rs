@@ -86,7 +86,7 @@ async fn fetch_usd_crypto_pairs(url: &str) -> Result<Vec<Pair>, Error> {
                     let value = &crypto_object.current_price;
                     pairs.push(Pair {
                         id: Uuid::new_v4().to_string(),
-                        value: value.clone(),
+                        value: 1.0 / value,
                         base: String::from("USD"),
                         comparison: code.to_string(),
                         created_at: Utc::now().to_rfc3339(),
