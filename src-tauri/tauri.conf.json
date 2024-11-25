@@ -12,10 +12,10 @@
   "app": {
     "windows": [
       {
-        "title": "ark-rate-desktop",
-        "width": 800,
-        "height": 600
-        
+        "title": "Ark Rate Desktop",
+        "maximized": true,
+        "width": 1450,
+        "height": 800
       }
     ],
     "security": {
