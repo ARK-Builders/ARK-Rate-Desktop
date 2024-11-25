@@ -2,7 +2,7 @@
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import ContextMenu from '$lib/ui/global/components/context_menu/ContextMenu.svelte';
   import { Button, Heading } from 'flowbite-svelte';
-  import { Coins, Pencil, Pin, PinOff, Plus, Trash } from 'lucide-svelte';
+  import { Coins, Eye, Pencil, Pin, PinOff, Plus, Trash } from 'lucide-svelte';
   import PairGroupView from './PairGroupView.svelte';
 
   type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
@@ -50,7 +50,15 @@
   {#if pinnedPairGroups.length > 0}
     <div class="flex flex-col">
       <div class="flex items-center justify-between gap-12 border-b py-3 text-gray-500">
-        <p class="font-bold">Pinned pairs</p>
+        <div class="flex items-center gap-1">
+          <p class="font-bold">Pinned pairs</p>
+          <Button
+            size="xs"
+            color="none"
+          >
+            <Eye class="size-5" />
+          </Button>
+        </div>
         <Pin class="size-5 rotate-45 fill-gray-500" />
       </div>
       {#each pinnedPairGroups as pairGroup}
