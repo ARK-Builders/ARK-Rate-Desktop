@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { Button, Heading } from 'flowbite-svelte';
-  import { Coins, Eye, Pin, Plus } from 'lucide-svelte';
+  import { Coins, Pin, Plus } from 'lucide-svelte';
   import PinnedPairGroupsList from './PinnedPairGroupsList.svelte';
   import UnpinnedPairGroupsList from './UnpinnedPairGroupsList.svelte';
 
@@ -14,12 +14,6 @@
   export let onPairGroupPinToggle: (pairGroup: PairGroup) => void;
   export let onUpdatePairGroupOpen: (pairGroup: PairGroup) => void;
   export let onDeletePairGroupOpen: (pairGroup: PairGroup) => void;
-
-  let isPinnedPairGroupsMatrix = false;
-
-  const togglePinnedPairGroupsMatrix = () => {
-    isPinnedPairGroupsMatrix = !isPinnedPairGroupsMatrix;
-  };
 </script>
 
 <div class="flex flex-col gap-16">
@@ -46,28 +40,15 @@
   {#if pinnedPairGroups.length > 0}
     <div class="flex flex-col">
       <div class="flex items-center justify-between gap-12 border-b py-3 text-gray-500">
-        <div class="flex items-center gap-1">
-          <p class="font-bold">Pinned pairs</p>
-          <Button
-            size="xs"
-            color="none"
-            on:click={togglePinnedPairGroupsMatrix}
-          >
-            <Eye class="size-5" />
-          </Button>
-        </div>
+        <p class="font-bold">Pinned pairs</p>
         <Pin class="size-5 rotate-45 fill-gray-500" />
       </div>
-      {#if isPinnedPairGroupsMatrix}
-        <!-- content here -->
-      {:else}
-        <PinnedPairGroupsList
-          pairGroups={pinnedPairGroups}
-          {onPairGroupPinToggle}
-          {onDeletePairGroupOpen}
-          {onUpdatePairGroupOpen}
-        />
-      {/if}
+      <PinnedPairGroupsList
+        pairGroups={pinnedPairGroups}
+        {onPairGroupPinToggle}
+        {onDeletePairGroupOpen}
+        {onUpdatePairGroupOpen}
+      />
     </div>
   {/if}
   <!-- UNPINNED PAIR GROUPS -->
