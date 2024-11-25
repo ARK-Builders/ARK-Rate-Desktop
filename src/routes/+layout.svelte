@@ -3,7 +3,7 @@
   import Toast from '$lib/ui/global/components/toast/Toast.svelte';
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { Button, Input } from 'flowbite-svelte';
-  import { Bell, ChartNoAxesColumn, Coins, PanelLeft, Search, Settings } from 'lucide-svelte';
+  import { Bell, Binoculars, ChartNoAxesColumn, Coins, PanelLeft, Search, Settings } from 'lucide-svelte';
   import '../app.css';
 
   let isNavigationDrawerOpen = true;
@@ -61,6 +61,17 @@
           >
             <Coins class="size-5" />
             Quick
+          </Button>
+          <Button
+            outline
+            href="/watchlist"
+            size="sm"
+            color="primary"
+            checked={$page.url.pathname === '/watchlist'}
+            class="justify-start gap-1 border-none px-3 shadow-none"
+          >
+            <Binoculars class="size-5" />
+            Watchlist
           </Button>
           <Button
             outline
