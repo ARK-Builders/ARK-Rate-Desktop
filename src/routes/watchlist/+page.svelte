@@ -42,6 +42,17 @@
               <p class="font-bold">BTC</p>
             </div>
           </th>
+          <th class="border-l">
+            <!-- COIN -->
+            <div class="flex items-center gap-2 px-6 py-4 font-normal">
+              <div class="size-12 overflow-hidden rounded-full">
+                <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+                  <p class="text-xs text-white">USD</p>
+                </div>
+              </div>
+              <p class="font-bold">USD</p>
+            </div>
+          </th>
           <th class="w-full border-l">
             <Button
               color="none"
@@ -65,8 +76,26 @@
               <p class="font-bold">BTC</p>
             </div>
           </td>
-          <td class="border-l"> </td>
-          <td class="border-l"> </td>
+          <td class="border-l text-center text-sm">1</td>
+          <td class="border-l text-center text-sm">$93,579</td>
+          <!-- placeholder -->
+          <td class="border-l"></td>
+        </tr>
+        <tr class="border-t">
+          <td class="bg-gray-100">
+            <div class="flex items-center gap-2 px-6 py-4 font-normal">
+              <div class="size-12 overflow-hidden rounded-full border-2 border-white">
+                <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+                  <p class="text-xs text-white">USD</p>
+                </div>
+              </div>
+              <p class="font-bold">USD</p>
+            </div>
+          </td>
+          <td class="border-l text-center text-sm">$0.00001068</td>
+          <td class="border-l text-center text-sm">1</td>
+          <!-- placeholder -->
+          <td class="border-l"></td>
         </tr>
       </tbody>
     </table>
