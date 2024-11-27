@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
   import { Button, Heading } from 'flowbite-svelte';
-  import { EllipsisVertical } from 'lucide-svelte';
+  import { ArrowRightLeft, EllipsisVertical, PlusCircle } from 'lucide-svelte';
 </script>
 
 <div class="h-full min-w-max overflow-auto p-24">
@@ -18,7 +18,41 @@
         <EllipsisVertical class="size-5 text-gray-500" />
       </Button>
     </div>
-    <table class="conteudo">
+    <!-- BODY -->
+    <table class="table-auto">
+      <thead>
+        <tr class="border-t">
+          <th>
+            <Button
+              color="none"
+              class="flex w-max items-center gap-2 font-bold text-green-500"
+            >
+              Sort
+              <ArrowRightLeft class="size-6" />
+            </Button>
+          </th>
+          <th class="border-l">
+            <!-- COIN -->
+            <div class="flex items-center gap-2 px-6 py-4">
+              <div class="size-16 overflow-hidden rounded-full border-2 border-white">
+                <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+                  <p class="text-xs text-white">BTC</p>
+                </div>
+              </div>
+              <p class="font-bold">BTC</p>
+            </div>
+          </th>
+          <th class="w-full border-l">
+            <Button
+              color="none"
+              class="flex w-max items-center gap-2 font-bold text-green-500"
+            >
+              <PlusCircle class="size-6 fill-green-500 text-white" />
+              Add currency
+            </Button>
+          </th>
+        </tr>
+      </thead>
       <!-- TODO -->
     </table>
   </div>
