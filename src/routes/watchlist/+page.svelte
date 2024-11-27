@@ -45,7 +45,7 @@
           <th class="w-full border-l">
             <Button
               color="none"
-              class="flex w-max items-center gap-2 font-bold text-green-500"
+              class="flex w-max items-center gap-2 pr-0 font-bold text-green-500"
             >
               <PlusCircle class="size-6 fill-green-500 text-white" />
               Add currency
