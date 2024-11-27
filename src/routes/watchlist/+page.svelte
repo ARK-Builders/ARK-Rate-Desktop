@@ -53,7 +53,26 @@
           </th>
         </tr>
       </thead>
-      <!-- TODO -->
+      <tbody>
+        <tr class="border-t">
+          <td>
+            <div class="flex items-center gap-2 px-6 py-4">
+              <div class="size-16 overflow-hidden rounded-full border-2 border-white">
+                <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+                  <p class="text-xs text-white">BTC</p>
+                </div>
+              </div>
+              <p class="font-bold">BTC</p>
+            </div>
+          </td>
+          <td class="border-l">
+
+          </td>
+          <td class="border-l">
+
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 </div>
