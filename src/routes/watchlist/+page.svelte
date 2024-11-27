@@ -25,7 +25,7 @@
           <th>
             <Button
               color="none"
-              class="flex w-max items-center gap-2 font-bold text-green-500"
+              class="flex mx-auto w-max items-center gap-2 font-bold text-green-500"
             >
               Sort
               <ArrowRightLeft class="size-6" />
