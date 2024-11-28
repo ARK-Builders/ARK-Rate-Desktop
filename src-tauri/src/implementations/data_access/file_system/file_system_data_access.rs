@@ -7,7 +7,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    entities::{asset::Asset, pair::Pair, pair_group::PairGroup, tag::Tag},
+    entities::{asset::Asset, pair::Pair, pair_group::PairGroup, tag::Tag, watchlist::Watchlist},
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
         delete_asset::DeleteAssetDataAccess, delete_pair_group::DeletePairGroupDataAccess,
@@ -15,18 +15,20 @@ use crate::{
         save_tag::SaveTagDataAccess, store_portfolios::StorePortfoliosDataAccess,
         update_pair_group::UpdatePairGroupDataAccess, update_portfolio::UpdatePortfolioDataAccess,
         view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
+        view_watchlist::ViewWatchlistDataAccess,
     },
     Error,
 };
 
 use super::{
     file_system_asset::FileSystemAsset, file_system_pair_group::FileSystemPairGroup,
-    file_system_tag::FileSystemTag,
+    file_system_tag::FileSystemTag, file_system_watchlist::FileSystemWatchlist,
 };
 
 const TAGS_DIR_NAME: &str = "tag";
 const PAIRS_DIR_NAME: &str = "pairs";
 const ASSETS_DIR_NAME: &str = "assets";
+const WATCHLISTS_DIR_NAME: &str = "watchlists";
 const PAIR_GROUPS_DIR_NAME: &str = "pair_groups";
 
 pub struct FileSystemDataAccess {
@@ -657,6 +659,101 @@ fn remove_asset(root: &Path, id: &str) -> Result<(), Error> {
     let dir = ensure_dir(root, ASSETS_DIR_NAME)?;
     let path = dir.join(id);
     remove_object_file(&path)?;
+    return Ok(());
+}
+
+impl ViewWatchlistDataAccess for FileSystemDataAccess {
+    async fn update_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return update_pair(&self, pair).await;
+    }
+
+    async fn find_watchlist(&mut self) -> Result<Option<Watchlist>, Error> {
+        return find_watchlist(&self).await;
+    }
+
+    async fn save_watchlist(&mut self, watchlist: &Watchlist) -> Result<(), Error> {
+        return save_watchlist(&self, watchlist).await;
+    }
+
+    async fn update_watchlist(&mut self, watchlist: &Watchlist) -> Result<(), Error> {
+        return update_watchlist(&self, watchlist).await;
+    }
+}
+
+// NOTE: currently the business logic states that only one watchlist should exist
+async fn find_watchlist(data_access: &FileSystemDataAccess) -> Result<Option<Watchlist>, Error> {
+    let entries = get_dir_entries(&data_access.root, WATCHLISTS_DIR_NAME)?;
+    if entries.len() == 0 {
+        return Ok(None);
+    }
+    let first_entry = &entries[0];
+    let file_name = first_entry.file_name();
+    if let Some(id) = file_name.to_str() {
+        let watchlist = read_watchlist(&data_access.root, id)?;
+        return Ok(Some(watchlist));
+    }
+    return Ok(None);
+}
+
+fn read_watchlist(root: &Path, id: &str) -> Result<Watchlist, Error> {
+    let dir = ensure_dir(root, WATCHLISTS_DIR_NAME)?;
+    let path = dir.join(id);
+    let fs_watchlist = create_object_from_file::<FileSystemWatchlist>(&path)?;
+    let mut watchlist = Watchlist {
+        id: fs_watchlist.id.clone(),
+        pairs: vec![],
+        created_at: fs_watchlist.created_at.clone(),
+        updated_at: fs_watchlist.updated_at.clone(),
+    };
+    for pair_id in &fs_watchlist.pairs {
+        let pair = read_pair(root, &pair_id)?;
+        watchlist.pairs.push(pair);
+    }
+    return Ok(watchlist);
+}
+
+async fn save_watchlist(
+    data_access: &FileSystemDataAccess,
+    watchlist: &Watchlist,
+) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, WATCHLISTS_DIR_NAME)?;
+    let path = dir.join(&watchlist.id);
+    if path.exists() {
+        return Err(Error {
+            message: String::from("Pair group to save already exists!"),
+        });
+    }
+    write_watchlist(&data_access.root, watchlist)?;
+    return Ok(());
+}
+
+async fn update_watchlist(
+    data_access: &FileSystemDataAccess,
+    watchlist: &Watchlist,
+) -> Result<(), Error> {
+    let dir = ensure_dir(&data_access.root, WATCHLISTS_DIR_NAME)?;
+    let path = dir.join(&watchlist.id);
+    if !path.exists() {
+        return Err(Error {
+            message: String::from("Pair group to update does not exist!"),
+        });
+    }
+    write_watchlist(&data_access.root, watchlist)?;
+    return Ok(());
+}
+
+fn write_watchlist(root: &Path, watchlist: &Watchlist) -> Result<(), Error> {
+    let dir = ensure_dir(root, WATCHLISTS_DIR_NAME)?;
+    let path = dir.join(&watchlist.id);
+    write_object_file(
+        &path,
+        &FileSystemWatchlist {
+            id: watchlist.id.clone(),
+            pairs: watchlist.pairs.iter().map(|p| p.id.clone()).collect(),
+            created_at: watchlist.created_at.clone(),
+            updated_at: watchlist.updated_at.clone(),
+        },
+    )?;
     return Ok(());
 }
 

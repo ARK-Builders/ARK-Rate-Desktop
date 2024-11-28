@@ -16,6 +16,7 @@ use interactors::{
     update_portfolio::{UpdatePortfolio, UpdatePortfolioRequest},
     view_pair_groups::ViewPairGroups,
     view_portfolios::ViewPortfolios,
+    view_watchlist::ViewWatchlist,
 };
 
 mod entities;
@@ -187,6 +188,24 @@ async fn delete_asset(request: String) -> Result<String, String> {
     return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
+#[tauri::command]
+async fn view_watchlist() -> Result<String, String> {
+    let coin_market = GithubCoinMarket {
+        fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
+        crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
+    };
+    let data_access = create_fs_data_access();
+    let mut interactor = ViewWatchlist {
+        coin_market,
+        data_access,
+    };
+    let result = interactor.perform(()).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -202,6 +221,7 @@ pub fn run() {
             delete_tag,
             update_portfolio,
             delete_asset,
+            view_watchlist,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
