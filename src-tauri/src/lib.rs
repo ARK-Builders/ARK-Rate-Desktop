@@ -12,6 +12,7 @@ use interactors::{
     save_pair_group::{SavePairGroup, SavePairGroupRequest},
     save_tag::{SaveTag, SaveTagRequest},
     store_portfolios::{StorePortfolios, StorePortfoliosRequest},
+    store_watchlist_coins::{StoreWatchlistCoins, StoreWatchlistCoinsRequest},
     update_pair_group::{UpdatePairGroup, UpdatePairGroupRequest},
     update_portfolio::{UpdatePortfolio, UpdatePortfolioRequest},
     view_pair_groups::ViewPairGroups,
@@ -206,6 +207,25 @@ async fn view_watchlist() -> Result<String, String> {
     return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
+#[tauri::command]
+async fn store_watchlist_coins(request: String) -> Result<String, String> {
+    let coin_market = GithubCoinMarket {
+        fiat_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/fiat-rates.json"),
+        crypto_rates_url: String::from("https://raw.githubusercontent.com/ARK-Builders/ark-exchange-rates/main/crypto-rates.json")
+    };
+    let data_access = create_fs_data_access();
+    let mut interactor = StoreWatchlistCoins {
+        coin_market,
+        data_access,
+    };
+    let parsed_request = serde_json::from_str::<StoreWatchlistCoinsRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -222,6 +242,7 @@ pub fn run() {
             update_portfolio,
             delete_asset,
             view_watchlist,
+            store_watchlist_coins,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

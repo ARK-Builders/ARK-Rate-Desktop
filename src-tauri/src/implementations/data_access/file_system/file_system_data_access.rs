@@ -13,6 +13,7 @@ use crate::{
         delete_asset::DeleteAssetDataAccess, delete_pair_group::DeletePairGroupDataAccess,
         delete_tag::DeleteTagDataAccess, save_pair_group::SavePairGroupDataAccess,
         save_tag::SaveTagDataAccess, store_portfolios::StorePortfoliosDataAccess,
+        store_watchlist_coins::StoreWatchlistCoinsDataAccess,
         update_pair_group::UpdatePairGroupDataAccess, update_portfolio::UpdatePortfolioDataAccess,
         view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
         view_watchlist::ViewWatchlistDataAccess,
@@ -755,6 +756,22 @@ fn write_watchlist(root: &Path, watchlist: &Watchlist) -> Result<(), Error> {
         },
     )?;
     return Ok(());
+}
+
+impl StoreWatchlistCoinsDataAccess for FileSystemDataAccess {
+    async fn get_watchlist(&mut self) -> Result<Watchlist, Error> {
+        if let Some(watchlist) = find_watchlist(&self).await? {
+            return Ok(watchlist);
+        } else {
+            return Err(Error {
+                message: String::from("Watchlist not found!"),
+            });
+        };
+    }
+
+    async fn update_watchlist(&mut self, watchlist: &Watchlist) -> Result<(), Error> {
+        return update_watchlist(&self, watchlist).await;
+    }
 }
 
 #[cfg(test)]
