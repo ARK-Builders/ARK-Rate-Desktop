@@ -11,6 +11,7 @@ use crate::{
 use super::interactor::Interactor;
 
 pub trait StoreWatchlistCoinsDataAccess {
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error>;
     async fn get_watchlist(&mut self) -> Result<Watchlist, Error>;
     async fn update_watchlist(&mut self, watchlist: &Watchlist) -> Result<(), Error>;
 }
@@ -39,14 +40,16 @@ where
         for coin in &request.coins {
             for usd_pair in &usd_pairs {
                 if usd_pair.comparison.eq(coin) {
-                    watchlist.pairs.push(Pair {
+                    let pair = Pair {
                         id: Uuid::new_v4().to_string(),
                         base: String::from("USD"),
                         comparison: coin.clone(),
                         value: usd_pair.value.clone(),
                         created_at: Utc::now().to_rfc3339(),
                         updated_at: Utc::now().to_rfc3339(),
-                    });
+                    };
+                    self.data_access.save_pair(&pair).await?;
+                    watchlist.pairs.push(pair);
                     break;
                 }
             }

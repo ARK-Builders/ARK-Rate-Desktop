@@ -759,6 +759,10 @@ fn write_watchlist(root: &Path, watchlist: &Watchlist) -> Result<(), Error> {
 }
 
 impl StoreWatchlistCoinsDataAccess for FileSystemDataAccess {
+    async fn save_pair(&mut self, pair: &Pair) -> Result<(), Error> {
+        return save_pair(&self, pair).await;
+    }
+
     async fn get_watchlist(&mut self) -> Result<Watchlist, Error> {
         if let Some(watchlist) = find_watchlist(&self).await? {
             return Ok(watchlist);
