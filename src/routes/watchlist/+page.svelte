@@ -1,7 +1,49 @@
 <script lang="ts">
+  import type { ErrorResponse } from '$lib/business/interactors/ErrorResponse';
+  import type { ViewWatchlistResponse } from '$lib/business/interactors/view_watchlist/ViewWatchlistResponse';
+  import { toasts } from '$lib/ui/global/stores/toastStore';
+  import { invoke } from '@tauri-apps/api/core';
   import { Button, Heading } from 'flowbite-svelte';
   import { ArrowRightLeft, EllipsisVertical } from 'lucide-svelte';
+  import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
+
+  type Pair = ViewWatchlistResponse['pairs'][0];
+
+  let isLoading = false;
+
+  let pairs: Pair[] = [];
+  let coins: string[] = [];
+
+  const loadWatchlist = async () => {
+    isLoading = true;
+    pairs = [];
+    coins = [];
+    return invoke('view_watchlist')
+      .then((rawResponse) => {
+        const response: ViewWatchlistResponse = JSON.parse(rawResponse as string);
+        coins = response.coins;
+        pairs = response.pairs;
+      })
+      .catch((err) => {
+        const response: ErrorResponse = JSON.parse(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: response.message,
+          },
+        ];
+      })
+      .finally(() => {
+        isLoading = false;
+      });
+  };
+
+  onMount(() => {
+    loadWatchlist();
+  });
 </script>
 
 <div class="h-full min-w-max overflow-auto p-24">
@@ -9,7 +51,9 @@
   <div class="rounded-lg border">
     <!-- HEADER -->
     <div class="relative p-4">
+      <!-- TODO -->
       <Heading tag="h5">Matrix - Multi-currency monitor</Heading>
+      <!-- TODO -->
       <p>Last refreshed 2 minutes ago.</p>
       <Button
         color="none"
@@ -28,16 +72,16 @@
               color="none"
               class="mx-auto flex w-max items-center gap-2 font-bold text-green-500"
             >
+              <!-- TODO -->
               Sort
               <ArrowRightLeft class="size-5" />
             </Button>
           </th>
-          <th class="border-l">
-            <CoinView coin="BTC" />
-          </th>
-          <th class="border-l">
-            <CoinView coin="USD" />
-          </th>
+          {#each pairs as pair}
+            <th class="border-l">
+              <CoinView coin={pair.base.comparison} />
+            </th>
+          {/each}
           <th class="w-full border-l">
             <Button
               color="none"
@@ -50,24 +94,17 @@
         </tr>
       </thead>
       <tbody>
-        <tr class="border-t">
-          <td class="bg-gray-100">
-            <CoinView coin="BTC" />
-          </td>
-          <td class="border-l text-center text-sm">1</td>
-          <td class="border-l text-center text-sm">$93,579</td>
-          <!-- placeholder -->
-          <td class="border-l"></td>
-        </tr>
-        <tr class="border-t">
-          <td class="bg-gray-100">
-            <CoinView coin="USD" />
-          </td>
-          <td class="border-l text-center text-sm">$0.00001068</td>
-          <td class="border-l text-center text-sm">1</td>
-          <!-- placeholder -->
-          <td class="border-l"></td>
-        </tr>
+        {#each pairs as pair}
+          <tr class="border-t">
+            <td class="bg-gray-100">
+              <CoinView coin={pair.base.comparison} />
+            </td>
+            {#each pair.combinations as combination}
+              <td class="border-l text-center text-sm">${combination.value}</td>
+            {/each}
+            <td class="border-l"></td>
+          </tr>
+        {/each}
       </tbody>
     </table>
   </div>
