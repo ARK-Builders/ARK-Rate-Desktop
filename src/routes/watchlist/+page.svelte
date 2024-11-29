@@ -6,7 +6,8 @@
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Button, Heading, Spinner } from 'flowbite-svelte';
-  import { Trash } from 'lucide-svelte';
+  import { Binoculars, Trash } from 'lucide-svelte';
+  import { DateTime, Duration } from 'luxon';
   import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
   import StoreWatchlistCoinsModal from './StoreWatchlistCoinsModal.svelte';
@@ -18,11 +19,25 @@
 
   let pairs: Pair[] = [];
   let coins: string[] = [];
+  let now: DateTime = DateTime.now();
+  let updatedAt: DateTime = DateTime.now();
+
+  $: getLastUpdateMessage = (): string => {
+    const duration = Duration.fromMillis(now.toMillis() - updatedAt.toMillis());
+    return duration.shiftTo('minutes').toHuman({
+      listStyle: 'narrow',
+      unitDisplay: 'narrow',
+      roundingMode: 'floor',
+      maximumFractionDigits: 0,
+    });
+  };
 
   const loadWatchlist = async () => {
     isLoading = true;
     pairs = [];
     coins = [];
+    now = DateTime.now();
+    updatedAt = DateTime.now();
     return invoke('view_watchlist')
       .then((rawResponse) => {
         const response: ViewWatchlistResponse = JSON.parse(rawResponse as string);
@@ -108,6 +123,12 @@
 
   onMount(() => {
     loadWatchlist();
+    const nowInterval = setInterval(() => {
+      now = DateTime.now()
+    }, 60000)
+    return () => {
+      clearInterval(nowInterval);
+    }
   });
 </script>
 
@@ -130,9 +151,11 @@
       <!-- HEADER -->
       <div class="relative p-4">
         <!-- TODO -->
-        <Heading tag="h5">Matrix - Multi-currency monitor</Heading>
-        <!-- TODO -->
-        <p>Last refreshed 2 minutes ago.</p>
+        <div class="flex items-center gap-2">
+          <Binoculars class="size-8 text-primary-500" />
+          <Heading tag="h5">Watchlist - Multi-currency monitor</Heading>
+        </div>
+        <p>Last updated {getLastUpdateMessage()} ago</p>
         <!-- TODO -->
         <!-- <Button
         color="none"
