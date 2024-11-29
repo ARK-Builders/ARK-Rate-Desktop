@@ -147,11 +147,27 @@
               <CoinView coin={pair.base.comparison} />
             </td>
             {#each pair.combinations as combination}
-              <td class="border-l text-center text-sm px-8">{combination.value}</td>
+              <td class="border-l px-8 text-center text-sm">{combination.value}</td>
             {/each}
             <td class="border-l"></td>
           </tr>
         {/each}
+        <tr class="border-t">
+          <td class="bg-gray-100 py-4">
+            <Button
+              color="none"
+              class="flex w-max items-center gap-2 font-bold text-green-500"
+              on:click={onStoreWatchlistCoinsOpen}
+            >
+              <span class="flex size-5 items-center justify-center rounded-full bg-green-500 p-0.5 text-white">+</span>
+              Add currency
+            </Button>
+          </td>
+          {#each pairs as _}
+            <td class="border-l"></td>
+          {/each}
+          <td class="border-l"></td>
+        </tr>
       </tbody>
     </table>
   </div>
