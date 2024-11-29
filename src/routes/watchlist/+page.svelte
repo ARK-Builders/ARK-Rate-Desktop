@@ -147,7 +147,7 @@
               <CoinView coin={pair.base.comparison} />
             </td>
             {#each pair.combinations as combination}
-              <td class="border-l text-center text-sm">${combination.value}</td>
+              <td class="border-l text-center text-sm px-8">{combination.value}</td>
             {/each}
             <td class="border-l"></td>
           </tr>
