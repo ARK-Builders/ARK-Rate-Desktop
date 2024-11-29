@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ErrorResponse } from '$lib/business/interactors/ErrorResponse';
+  import type { StoreWatchlistCoinsRequest } from '$lib/business/interactors/store_watchlist_coins/StoreWatchlistCoinsRequest';
   import type { ViewWatchlistResponse } from '$lib/business/interactors/view_watchlist/ViewWatchlistResponse';
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
@@ -7,10 +8,12 @@
   import { ArrowRightLeft, EllipsisVertical } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
+  import StoreWatchlistCoinsModal from './StoreWatchlistCoinsModal.svelte';
 
   type Pair = ViewWatchlistResponse['pairs'][0];
 
   let isLoading = false;
+  let isStoreWatchlistCoinsOpen = false;
 
   let pairs: Pair[] = [];
   let coins: string[] = [];
@@ -41,10 +44,53 @@
       });
   };
 
+  const onStoreWatchlistCoinsOpen = () => {
+    isStoreWatchlistCoinsOpen = true;
+  };
+
+  const onStoreWatchlistCoinsClose = () => {
+    isStoreWatchlistCoinsOpen = false;
+  };
+
+  const onWatchlistCoinsStore = async (request: StoreWatchlistCoinsRequest) => {
+    return invoke('store_watchlist_coins', { request: JSON.stringify(request) })
+      .then(() => {
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'success',
+            message: 'Currencies added successfully!',
+          },
+        ];
+        isStoreWatchlistCoinsOpen = false;
+        return loadWatchlist();
+      })
+      .catch((err) => {
+        const response: ErrorResponse = JSON.parse(err);
+        $toasts = [
+          ...$toasts,
+          {
+            id: crypto.randomUUID(),
+            type: 'error',
+            message: response.message,
+          },
+        ];
+      });
+  };
+
   onMount(() => {
     loadWatchlist();
   });
 </script>
+
+{#if isStoreWatchlistCoinsOpen}
+  <StoreWatchlistCoinsModal
+    {coins}
+    onStore={onWatchlistCoinsStore}
+    onClose={onStoreWatchlistCoinsClose}
+  />
+{/if}
 
 <div class="h-full min-w-max overflow-auto p-24">
   <!-- COIN MATRIX -->
@@ -86,6 +132,7 @@
             <Button
               color="none"
               class="flex w-max items-center gap-2 pr-0 font-bold text-green-500"
+              on:click={onStoreWatchlistCoinsOpen}
             >
               <span class="flex size-5 items-center justify-center rounded-full bg-green-500 p-0.5 text-white">+</span>
               Add currency
