@@ -1,6 +1,7 @@
 pub mod delete_asset;
 pub mod delete_pair_group;
 pub mod delete_tag;
+pub mod delete_watchlist_pair;
 pub mod interactor;
 pub mod save_pair_group;
 pub mod save_tag;
