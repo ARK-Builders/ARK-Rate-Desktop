@@ -8,6 +8,7 @@ use interactors::{
     delete_asset::{DeleteAsset, DeleteAssetRequest},
     delete_pair_group::{DeletePairGroup, DeletePairGroupRequest},
     delete_tag::{DeleteTag, DeleteTagRequest},
+    delete_watchlist_pair::{DeleteWatchlistPair, DeleteWatchlistPairRequest},
     interactor::Interactor,
     save_pair_group::{SavePairGroup, SavePairGroupRequest},
     save_tag::{SaveTag, SaveTagRequest},
@@ -226,6 +227,18 @@ async fn store_watchlist_coins(request: String) -> Result<String, String> {
     return Ok(serde_json::to_string(&result.unwrap()).unwrap());
 }
 
+#[tauri::command]
+async fn delete_watchlist_pair(request: String) -> Result<String, String> {
+    let data_access = create_fs_data_access();
+    let mut interactor = DeleteWatchlistPair { data_access };
+    let parsed_request = serde_json::from_str::<DeleteWatchlistPairRequest>(&request).unwrap();
+    let result = interactor.perform(parsed_request).await;
+    if result.is_err() {
+        return Err(serde_json::to_string(&result.unwrap_err()).unwrap());
+    }
+    return Ok(serde_json::to_string(&result.unwrap()).unwrap());
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -243,6 +256,7 @@ pub fn run() {
             delete_asset,
             view_watchlist,
             store_watchlist_coins,
+            delete_watchlist_pair,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

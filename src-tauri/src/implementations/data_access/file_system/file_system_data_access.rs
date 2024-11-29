@@ -11,8 +11,9 @@ use crate::{
     implementations::data_access::file_system::file_system_pair::FileSystemPair,
     interactors::{
         delete_asset::DeleteAssetDataAccess, delete_pair_group::DeletePairGroupDataAccess,
-        delete_tag::DeleteTagDataAccess, save_pair_group::SavePairGroupDataAccess,
-        save_tag::SaveTagDataAccess, store_portfolios::StorePortfoliosDataAccess,
+        delete_tag::DeleteTagDataAccess, delete_watchlist_pair::DeleteWatchlistPairDataAccess,
+        save_pair_group::SavePairGroupDataAccess, save_tag::SaveTagDataAccess,
+        store_portfolios::StorePortfoliosDataAccess,
         store_watchlist_coins::StoreWatchlistCoinsDataAccess,
         update_pair_group::UpdatePairGroupDataAccess, update_portfolio::UpdatePortfolioDataAccess,
         view_pair_groups::ViewPairGroupsDataAccess, view_portfolios::ViewPortfoliosDataAccess,
@@ -764,13 +765,31 @@ impl StoreWatchlistCoinsDataAccess for FileSystemDataAccess {
     }
 
     async fn get_watchlist(&mut self) -> Result<Watchlist, Error> {
-        if let Some(watchlist) = find_watchlist(&self).await? {
-            return Ok(watchlist);
-        } else {
-            return Err(Error {
-                message: String::from("Watchlist not found!"),
-            });
-        };
+        return get_watchlist(&self).await;
+    }
+
+    async fn update_watchlist(&mut self, watchlist: &Watchlist) -> Result<(), Error> {
+        return update_watchlist(&self, watchlist).await;
+    }
+}
+
+async fn get_watchlist(data_access: &FileSystemDataAccess) -> Result<Watchlist, Error> {
+    if let Some(watchlist) = find_watchlist(data_access).await? {
+        return Ok(watchlist);
+    } else {
+        return Err(Error {
+            message: String::from("Watchlist not found!"),
+        });
+    };
+}
+
+impl DeleteWatchlistPairDataAccess for FileSystemDataAccess {
+    async fn delete_pair(&mut self, id: &str) -> Result<(), Error> {
+        return delete_pair(&self, id).await;
+    }
+
+    async fn get_watchlist(&mut self) -> Result<Watchlist, Error> {
+        return get_watchlist(&self).await;
     }
 
     async fn update_watchlist(&mut self, watchlist: &Watchlist) -> Result<(), Error> {
