@@ -3,7 +3,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::{
-    entities::{pair::Pair, pair_group::PairGroup, watchlist::Watchlist},
+    entities::{pair::Pair, watchlist::Watchlist},
     utilities::coin_market::CoinMarket,
     Error,
 };
