@@ -5,7 +5,7 @@
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Button, Heading } from 'flowbite-svelte';
-  import { ArrowRightLeft, EllipsisVertical } from 'lucide-svelte';
+  import { ArrowRightLeft, EllipsisVertical, Trash } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
   import StoreWatchlistCoinsModal from './StoreWatchlistCoinsModal.svelte';
@@ -125,7 +125,15 @@
           </th>
           {#each pairs as pair}
             <th class="border-l">
-              <CoinView coin={pair.base.comparison} />
+              <div class="relative flex w-48 justify-center p-4">
+                <button
+                  class="absolute inset-0 flex items-center justify-center bg-gray-100 text-red-500 opacity-0 hover:opacity-100"
+                  on:click={console.log}
+                >
+                  <Trash class="size-6" />
+                </button>
+                <CoinView coin={pair.base.comparison} />
+              </div>
             </th>
           {/each}
           <th class="w-full border-l">
@@ -144,10 +152,27 @@
         {#each pairs as pair}
           <tr class="border-t">
             <td class="bg-gray-100">
-              <CoinView coin={pair.base.comparison} />
+              <div class="relative w-48 py-4 pl-6 pr-2">
+                <button
+                  class="absolute inset-0 flex items-center justify-center bg-gray-100 text-red-500 opacity-0 hover:opacity-100"
+                  on:click={console.log}
+                >
+                  <Trash class="size-6" />
+                </button>
+                <CoinView coin={pair.base.comparison} />
+              </div>
             </td>
             {#each pair.combinations as combination}
-              <td class="border-l px-8 text-center text-sm">{combination.value}</td>
+              <td class="border-l px-8 text-center text-sm">
+                {#if combination.comparison === pair.base.comparison}
+                  1
+                {:else}
+                  {combination.value.toLocaleString(undefined, {
+                    currency: 'USD',
+                  })}
+                  {combination.comparison}
+                {/if}
+              </td>
             {/each}
             <td class="border-l"></td>
           </tr>
