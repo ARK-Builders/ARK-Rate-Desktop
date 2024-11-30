@@ -27,9 +27,9 @@
       <div class="flex flex-col gap-6 px-4 py-10">
         <div class="flex items-center justify-between pl-4">
           <img
-            class="size-14"
+            class="size-24"
             alt="Ark Rate Logo"
-            src="/images/ark/md-logo.png"
+            src="/images/ark/secondary-logo.svg"
           />
           <Button
             outline
