@@ -10,19 +10,6 @@
   export let defaultTimeout = 6;
   export let type: ToastProperties['type'];
 
-  let isCounting = true;
-  let counter = defaultTimeout;
-  function timeout() {
-    counter--;
-    if (counter > 0) {
-      setTimeout(timeout, 1000);
-    } else {
-      isCounting = false;
-      counter = defaultTimeout;
-      $toasts = $toasts.filter((t) => t.id !== id);
-    }
-  }
-
   function getColor():
     | 'dark'
     | 'red'
@@ -46,7 +33,20 @@
     }
   }
 
-  onMount(timeout);
+  onMount(() => {
+    let counter = defaultTimeout;
+    const t = setInterval(() => {
+      counter--;
+      if (counter < 1) {
+        toasts.update((ts) => {
+          return ts.filter((t) => t.id !== id);
+        });
+      }
+    }, 1000);
+    return () => {
+      clearTimeout(t);
+    };
+  });
 </script>
 
 <Toast
