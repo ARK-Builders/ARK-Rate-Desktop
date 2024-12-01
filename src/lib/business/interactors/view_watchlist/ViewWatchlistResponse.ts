@@ -1,5 +1,6 @@
 interface ResponsePair {
   id: string;
+  fluctuation: number;
   base: string;
   value: number;
   comparison: string;
@@ -7,18 +8,7 @@ interface ResponsePair {
   updated_at: string;
 }
 
-interface ResponsePairCombination {
-  value: number;
-  comparison: string;
-  fluctuation: number;
-}
-
-interface ResponseWatchlistPair {
-  base: ResponsePair;
-  combinations: ResponsePairCombination[];
-}
-
 export interface ViewWatchlistResponse {
   coins: string[];
-  pairs: ResponseWatchlistPair[];
+  pairs: ResponsePair[];
 }

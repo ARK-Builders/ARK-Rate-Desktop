@@ -20,6 +20,7 @@ pub trait ViewWatchlistDataAccess {
 #[derive(Clone, Debug, Serialize)]
 pub struct ResponsePair {
     pub id: String,
+    pub fluctuation: f64,
     pub value: f64,
     pub base: String,
     pub comparison: String,
@@ -27,42 +28,10 @@ pub struct ResponsePair {
     pub updated_at: String,
 }
 
-impl PartialEq for ResponsePair {
-    fn eq(&self, other: &Self) -> bool {
-        return self.id == other.id
-            && self.base == other.base
-            && self.value == other.value
-            && self.comparison == other.comparison
-            && self.created_at == other.created_at
-            && self.updated_at == other.updated_at;
-    }
-}
-
-#[derive(Clone, Debug, Serialize)]
-pub struct ResponsePairCombination {
-    pub value: f64,
-    pub fluctuation: f64,
-    pub comparison: String,
-}
-
-impl PartialEq for ResponsePairCombination {
-    fn eq(&self, other: &Self) -> bool {
-        return self.value == other.value
-            && self.comparison == other.comparison
-            && self.fluctuation == other.fluctuation;
-    }
-}
-
-#[derive(Clone, Debug, Serialize)]
-pub struct ResponseWatchlistPair {
-    pub base: ResponsePair,
-    pub combinations: Vec<ResponsePairCombination>,
-}
-
 #[derive(Clone, Debug, Serialize)]
 pub struct ViewWatchlistResponse {
     pub coins: Vec<String>,
-    pub pairs: Vec<ResponseWatchlistPair>,
+    pub pairs: Vec<ResponsePair>,
 }
 
 pub struct ViewWatchlist<DA, CM> {
@@ -137,50 +106,28 @@ fn refresh_watchlist(usd_pairs: &Vec<Pair>, watchlist: &Watchlist) -> Watchlist 
     return fresh_watchlist;
 }
 
-fn create_response_pairs(
-    watchlist: &Watchlist,
-    fresh_watchlist: &Watchlist,
-) -> Vec<ResponseWatchlistPair> {
-    let mut pairs: Vec<ResponseWatchlistPair> = vec![];
-    for p in &fresh_watchlist.pairs {
-        let mut pair = ResponseWatchlistPair {
-            combinations: vec![],
-            base: ResponsePair {
-                id: p.id.clone(),
-                base: p.base.clone(),
-                value: p.value.clone(),
-                comparison: p.comparison.clone(),
-                created_at: p.created_at.clone(),
-                updated_at: p.updated_at.clone(),
-            },
-        };
-        let p_fluctuation = get_fluctuation(p, watchlist);
-        for pp in &fresh_watchlist.pairs {
-            if pp.id == p.id {
-                pair.combinations.push(ResponsePairCombination {
-                    value: 1.0,
-                    fluctuation: 0.0,
-                    comparison: pp.comparison.clone(),
-                });
-            } else {
-                let pp_fluctuation = get_fluctuation(pp, watchlist);
-                pair.combinations.push(ResponsePairCombination {
-                    value: pp.value / p.value,
-                    comparison: pp.comparison.clone(),
-                    fluctuation: pp_fluctuation - p_fluctuation,
-                });
-            }
-        }
-        pairs.push(pair);
-    }
-    return pairs;
+fn create_response_pairs(watchlist: &Watchlist, fresh_watchlist: &Watchlist) -> Vec<ResponsePair> {
+    return fresh_watchlist
+        .pairs
+        .iter()
+        .map(|p| ResponsePair {
+            id: p.id.clone(),
+            fluctuation: get_fluctuation(p, watchlist),
+            base: p.base.clone(),
+            value: p.value.clone(),
+            comparison: p.comparison.clone(),
+            created_at: p.created_at.clone(),
+            updated_at: p.updated_at.clone(),
+        })
+        .collect();
 }
 
 fn get_fluctuation(fresh_pair: &Pair, watchlist: &Watchlist) -> f64 {
+    let precision: f64 = 10_f64.powi(18);
     for p in &watchlist.pairs {
         if p.id == fresh_pair.id {
             let difference = fresh_pair.value - p.value;
-            return difference / p.value;
+            return (difference * precision).round() / (p.value * precision);
         }
     }
     return 0.0;

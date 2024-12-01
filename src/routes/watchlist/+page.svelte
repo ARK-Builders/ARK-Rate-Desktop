@@ -13,11 +13,20 @@
   import StoreWatchlistCoinsModal from './StoreWatchlistCoinsModal.svelte';
 
   type Pair = ViewWatchlistResponse['pairs'][0];
+  type Combination = {
+    pair: Pair;
+    value: number;
+    fluctuation: number;
+  };
+  type Row = {
+    pair: Pair;
+    combinations: Combination[];
+  };
 
   let isLoading = false;
   let isStoreWatchlistCoinsOpen = false;
 
-  let pairs: Pair[] = [];
+  let rows: Row[] = [];
   let coins: string[] = [];
   let now: DateTime = DateTime.now();
   let updatedAt: DateTime = DateTime.now();
@@ -34,7 +43,7 @@
 
   const loadWatchlist = async () => {
     isLoading = true;
-    pairs = [];
+    rows = [];
     coins = [];
     now = DateTime.now();
     updatedAt = DateTime.now();
@@ -42,7 +51,26 @@
       .then((rawResponse) => {
         const response: ViewWatchlistResponse = JSON.parse(rawResponse as string);
         coins = response.coins;
-        pairs = response.pairs;
+        rows = response.pairs.map((p) => {
+          console.log(p);
+          return {
+            pair: p,
+            combinations: response.pairs.map((pp) => {
+              if (pp.id === p.id) {
+                return {
+                  pair: pp,
+                  value: 1,
+                  fluctuation: 0,
+                };
+              }
+              return {
+                pair: pp,
+                value: pp.value / p.value,
+                fluctuation: pp.fluctuation - p.fluctuation,
+              } as Combination;
+            }),
+          };
+        });
       })
       .catch((err) => {
         const response: ErrorResponse = JSON.parse(err);
@@ -179,7 +207,7 @@
               <ArrowRightLeft class="size-5" />
             </Button> -->
             </th>
-            {#each pairs as pair}
+            {#each rows as row}
               <th class="border-l">
                 <div class="relative flex w-48 justify-center p-4">
                   <button
@@ -187,13 +215,13 @@
                     on:click={() =>
                       onWatchlistPairDelete({
                         pair: {
-                          id: pair.base.id,
+                          id: row.pair.id,
                         },
                       })}
                   >
                     <Trash class="size-6" />
                   </button>
-                  <CoinView coin={pair.base.comparison} />
+                  <CoinView coin={row.pair.comparison} />
                 </div>
               </th>
             {/each}
@@ -211,7 +239,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each pairs as pair}
+          {#each rows as row}
             <tr class="border-t">
               <td class="bg-gray-100">
                 <div class="relative w-48 py-4 pl-6 pr-2">
@@ -220,23 +248,23 @@
                     on:click={() =>
                       onWatchlistPairDelete({
                         pair: {
-                          id: pair.base.id,
+                          id: row.pair.id,
                         },
                       })}
                   >
                     <Trash class="size-6" />
                   </button>
-                  <CoinView coin={pair.base.comparison} />
+                  <CoinView coin={row.pair.comparison} />
                 </div>
               </td>
-              {#each pair.combinations as combination}
+              {#each row.combinations as combination}
                 <td class="border-l">
                   <div class="flex min-w-max flex-col items-center gap-2 p-4">
-                    {#if combination.comparison === pair.base.comparison}
+                    {#if combination.pair.comparison === row.pair.comparison}
                       1
                     {:else}
                       {combination.value.toLocaleString()}
-                      {combination.comparison}
+                      {combination.pair.comparison}
                     {/if}
                     {#if combination.fluctuation > 0}
                       <div
@@ -275,7 +303,7 @@
                 Add currency
               </Button>
             </td>
-            {#each pairs as _}
+            {#each rows as _}
               <td class="border-l"></td>
             {/each}
             <td class="border-l"></td>
