@@ -6,7 +6,7 @@
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Button, Heading, Spinner } from 'flowbite-svelte';
-  import { ArrowDown, ArrowUp, Binoculars, Trash } from 'lucide-svelte';
+  import { ArrowDown, ArrowRightLeft, ArrowUp, Binoculars, Grip, Trash } from 'lucide-svelte';
   import { DateTime, Duration } from 'luxon';
   import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
@@ -14,19 +14,18 @@
 
   type Pair = ViewWatchlistResponse['pairs'][0];
   type Combination = {
-    pair: Pair;
+    row: Pair;
+    column: Pair;
     value: number;
     fluctuation: number;
   };
-  type Row = {
-    pair: Pair;
-    combinations: Combination[];
-  };
 
+  let isSorting = false;
   let isLoading = false;
   let isStoreWatchlistCoinsOpen = false;
 
-  let rows: Row[] = [];
+  let rows: Pair[] = [];
+  let columns: Pair[] = [];
   let coins: string[] = [];
   let now: DateTime = DateTime.now();
   let updatedAt: DateTime = DateTime.now();
@@ -41,6 +40,25 @@
     });
   };
 
+  $: getCombinations = (row: Pair): Combination[] => {
+    return columns.map((column) => {
+      if (column.id === row.id) {
+        return {
+          row,
+          column,
+          value: 1,
+          fluctuation: 0,
+        };
+      }
+      return {
+        row,
+        column,
+        value: column.value / row.value,
+        fluctuation: column.fluctuation - row.fluctuation,
+      };
+    });
+  };
+
   const loadWatchlist = async () => {
     isLoading = true;
     rows = [];
@@ -51,26 +69,8 @@
       .then((rawResponse) => {
         const response: ViewWatchlistResponse = JSON.parse(rawResponse as string);
         coins = response.coins;
-        rows = response.pairs.map((p) => {
-          console.log(p);
-          return {
-            pair: p,
-            combinations: response.pairs.map((pp) => {
-              if (pp.id === p.id) {
-                return {
-                  pair: pp,
-                  value: 1,
-                  fluctuation: 0,
-                };
-              }
-              return {
-                pair: pp,
-                value: pp.value / p.value,
-                fluctuation: pp.fluctuation - p.fluctuation,
-              } as Combination;
-            }),
-          };
-        });
+        rows = [...response.pairs];
+        columns = [...response.pairs];
       })
       .catch((err) => {
         const response: ErrorResponse = JSON.parse(err);
@@ -149,6 +149,27 @@
       });
   };
 
+  const onSortToggle = () => {
+    isSorting = !isSorting;
+  };
+
+  const onColumnDragStart = (column: Pair) => (event: DragEvent) => {
+    if (!event.dataTransfer) return;
+    event.dataTransfer.setData('text/plain', column.id);
+  };
+
+  const onColumnDrop = (column: Pair) => (event: DragEvent) => {
+    if (!event.dataTransfer) return;
+    const columnIndex = columns.findIndex((c) => c.id === column.id);
+    if (columnIndex < 0) return;
+    const replacementId = event.dataTransfer.getData('text/plain');
+    const replacementIndex = columns.findIndex((c) => c.id === replacementId);
+    if (replacementIndex < 0) return;
+    const replacement = columns.splice(replacementIndex, 1);
+    columns.splice(columnIndex, 0, ...replacement);
+    columns = columns;
+  };
+
   onMount(() => {
     loadWatchlist();
     const nowInterval = setInterval(() => {
@@ -197,31 +218,44 @@
       <table class="table-auto">
         <thead>
           <tr class="border-t bg-gray-100">
-            <th>
+            <th class={isSorting ? 'animate-pulse bg-green-500' : ''}>
               <!-- TODO -->
-              <!-- <Button
-              color="none"
-              class="mx-auto flex w-max items-center gap-2 font-bold text-green-500"
-            >
-              Sort
-              <ArrowRightLeft class="size-5" />
-            </Button> -->
+              <Button
+                color="none"
+                class="mx-auto flex w-max items-center gap-2 font-bold {isSorting ? 'text-white' : 'text-green-500'}"
+                on:click={onSortToggle}
+              >
+                Sort
+                <ArrowRightLeft class="size-5" />
+              </Button>
             </th>
-            {#each rows as row}
+            {#each columns as column}
               <th class="border-l">
                 <div class="relative flex w-48 justify-center p-4">
-                  <button
-                    class="absolute inset-0 flex items-center justify-center bg-gray-100 text-red-500 opacity-0 hover:opacity-100"
-                    on:click={() =>
-                      onWatchlistPairDelete({
-                        pair: {
-                          id: row.pair.id,
-                        },
-                      })}
-                  >
-                    <Trash class="size-6" />
-                  </button>
-                  <CoinView coin={row.pair.comparison} />
+                  {#if isSorting}
+                    <button
+                      draggable="true"
+                      on:drop={onColumnDrop(column)}
+                      on:dragover|preventDefault
+                      on:dragstart={onColumnDragStart(column)}
+                      class="absolute inset-0 flex cursor-move items-center justify-center bg-gray-100 opacity-0 hover:opacity-100 active:cursor-grabbing"
+                    >
+                      <Grip class="size-6" />
+                    </button>
+                  {:else}
+                    <button
+                      class="absolute inset-0 flex items-center justify-center bg-gray-100 text-red-500 opacity-0 hover:opacity-100"
+                      on:click={() =>
+                        onWatchlistPairDelete({
+                          pair: {
+                            id: column.id,
+                          },
+                        })}
+                    >
+                      <Trash class="size-6" />
+                    </button>
+                  {/if}
+                  <CoinView coin={column.comparison} />
                 </div>
               </th>
             {/each}
@@ -248,23 +282,23 @@
                     on:click={() =>
                       onWatchlistPairDelete({
                         pair: {
-                          id: row.pair.id,
+                          id: row.id,
                         },
                       })}
                   >
                     <Trash class="size-6" />
                   </button>
-                  <CoinView coin={row.pair.comparison} />
+                  <CoinView coin={row.comparison} />
                 </div>
               </td>
-              {#each row.combinations as combination}
+              {#each getCombinations(row) as combination}
                 <td class="border-l">
                   <div class="flex min-w-max flex-col items-center gap-2 p-4">
-                    {#if combination.pair.comparison === row.pair.comparison}
+                    {#if combination.row.id === combination.column.id}
                       1
                     {:else}
                       {combination.value.toLocaleString()}
-                      {combination.pair.comparison}
+                      {combination.column.comparison}
                     {/if}
                     {#if combination.fluctuation > 0}
                       <div
