@@ -6,7 +6,7 @@
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Button, Heading, Spinner } from 'flowbite-svelte';
-  import { Binoculars, Trash } from 'lucide-svelte';
+  import { ArrowDown, ArrowUp, Binoculars, ChevronsLeftRightEllipsis, Trash } from 'lucide-svelte';
   import { DateTime, Duration } from 'luxon';
   import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
@@ -124,11 +124,11 @@
   onMount(() => {
     loadWatchlist();
     const nowInterval = setInterval(() => {
-      now = DateTime.now()
-    }, 60000)
+      now = DateTime.now();
+    }, 60000);
     return () => {
       clearInterval(nowInterval);
-    }
+    };
   });
 </script>
 
@@ -230,15 +230,40 @@
                 </div>
               </td>
               {#each pair.combinations as combination}
-                <td class="border-l px-8 text-center text-sm">
-                  {#if combination.comparison === pair.base.comparison}
-                    1
-                  {:else}
-                    {combination.value.toLocaleString(undefined, {
-                      currency: 'USD',
-                    })}
-                    {combination.comparison}
-                  {/if}
+                <td class="border-l">
+                  <div class="flex min-w-max flex-col items-center gap-2 p-4">
+                    {#if combination.comparison === pair.base.comparison}
+                      1
+                    {:else}
+                      {combination.value.toLocaleString()}
+                      {combination.comparison}
+                    {/if}
+                    {#if combination.fluctuation > 0}
+                      <div
+                        class="flex items-center rounded-full border border-green-300 bg-green-100 p-1 text-xs text-green-500"
+                      >
+                        <ArrowUp class="size-3" />
+                        %{(combination.fluctuation * 100).toLocaleString(undefined, {
+                          maximumFractionDigits: 2,
+                        })}
+                      </div>
+                    {:else if combination.fluctuation < 0}
+                      <div
+                        class="flex items-center rounded-full border border-red-300 bg-red-100 p-1 text-xs text-red-500"
+                      >
+                        <ArrowDown class="size-3" />
+                        %{(combination.fluctuation * 100).toLocaleString(undefined, {
+                          maximumFractionDigits: 2,
+                        })}
+                      </div>
+                    {:else}
+                      <div
+                        class="flex items-center rounded-full border border-gray-300 bg-gray-100 p-1 text-xs text-gray-500"
+                      >
+                        <ChevronsLeftRightEllipsis class="size-4" />
+                      </div>
+                    {/if}
+                  </div>
                 </td>
               {/each}
               <td class="border-l"></td>
