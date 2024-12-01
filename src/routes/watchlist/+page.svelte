@@ -6,7 +6,7 @@
   import { toasts } from '$lib/ui/global/stores/toastStore';
   import { invoke } from '@tauri-apps/api/core';
   import { Button, Heading, Spinner } from 'flowbite-svelte';
-  import { ArrowDown, ArrowUp, Binoculars, ChevronsLeftRightEllipsis, Trash } from 'lucide-svelte';
+  import { ArrowDown, ArrowUp, Binoculars, Trash } from 'lucide-svelte';
   import { DateTime, Duration } from 'luxon';
   import { onMount } from 'svelte';
   import CoinView from './CoinView.svelte';
@@ -255,12 +255,6 @@
                         %{(combination.fluctuation * 100).toLocaleString(undefined, {
                           maximumFractionDigits: 2,
                         })}
-                      </div>
-                    {:else}
-                      <div
-                        class="flex items-center rounded-full border border-gray-300 bg-gray-100 p-1 text-xs text-gray-500"
-                      >
-                        <ChevronsLeftRightEllipsis class="size-4" />
                       </div>
                     {/if}
                   </div>
