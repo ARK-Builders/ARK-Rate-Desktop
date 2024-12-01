@@ -238,7 +238,7 @@
                       on:drop={onColumnDrop(column)}
                       on:dragover|preventDefault
                       on:dragstart={onColumnDragStart(column)}
-                      class="absolute inset-0 flex cursor-move items-center justify-center bg-gray-100 opacity-0 hover:opacity-100 active:cursor-grabbing"
+                      class="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-0 hover:cursor-move hover:opacity-100 active:cursor-grabbing"
                     >
                       <Grip class="size-6" />
                     </button>
