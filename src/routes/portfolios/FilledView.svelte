@@ -3,6 +3,7 @@
   import ContextMenu from '$lib/ui/global/components/context_menu/ContextMenu.svelte';
   import { Button, Heading, TabItem, Tabs } from 'flowbite-svelte';
   import { ArrowDown, ArrowUp, ChartNoAxesColumn, Pencil, Plus, Trash } from 'lucide-svelte';
+  import AssetView from './AssetView.svelte';
 
   type Tag = ViewPortfoliosResponse['tags'][0];
   type Portfolio = ViewPortfoliosResponse['portfolios'][0];
@@ -120,33 +121,7 @@
               };
             }}
           >
-            <!-- Asset -->
-            <div class="flex items-center justify-between border-b px-2 py-6 text-left">
-              <div class="flex gap-2">
-                <div class="size-16 overflow-hidden rounded-full border-2 border-white">
-                  <div class="flex size-full items-center justify-center bg-gray-600 text-center">
-                    <p class="text-xs text-white">{portfolio.asset.coin}</p>
-                  </div>
-                  <!-- <img
-                   alt="EUR Logo"
-                   class="size-full"
-                   src="images/fiat-currencies/EUR.png"
-               /> -->
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p>{portfolio.asset.coin}</p>
-                  <p class="text-gray-500 dark:text-gray-400">{(1 / portfolio.asset.usd_value).toLocaleString()}</p>
-                </div>
-              </div>
-              <div class="flex flex-col text-end">
-                <p>${(portfolio.asset.usd_value * portfolio.asset.quantity).toLocaleString()}</p>
-                <p class="text-gray-500 dark:text-gray-400">
-                  {portfolio.asset.quantity.toLocaleString()}
-                  {portfolio.asset.coin}
-                </p>
-              </div>
-            </div>
-            <!--  -->
+            <AssetView asset={portfolio.asset} />
           </button>
         {/each}
       </div>
@@ -175,33 +150,7 @@
         </div>
         <div class="flex flex-col">
           {#each untaggedPortfolios as portfolio}
-            <!-- Asset -->
-            <div class="flex items-center justify-between border-b px-2 py-6">
-              <div class="flex gap-2">
-                <div class="size-16 overflow-hidden rounded-full border-2 border-white">
-                  <div class="flex size-full items-center justify-center bg-gray-600 text-center">
-                    <p class="text-xs text-white">{portfolio.asset.coin}</p>
-                  </div>
-                  <!-- <img
-                   alt="EUR Logo"
-                   class="size-full"
-                   src="images/fiat-currencies/EUR.png"
-               /> -->
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p>{portfolio.asset.coin}</p>
-                  <p class="text-gray-500 dark:text-gray-400">{(1 / portfolio.asset.usd_value).toLocaleString()}</p>
-                </div>
-              </div>
-              <div class="flex flex-col text-end">
-                <p>${(portfolio.asset.usd_value * portfolio.asset.quantity).toLocaleString()}</p>
-                <p class="text-gray-500 dark:text-gray-400">
-                  {portfolio.asset.quantity.toLocaleString()}
-                  {portfolio.asset.coin}
-                </p>
-              </div>
-            </div>
-            <!--  -->
+            <AssetView asset={portfolio.asset} />
           {/each}
         </div>
       </div>
@@ -230,33 +179,7 @@
         </div>
         <div class="flex flex-col">
           {#each taggedPortfolios as portfolio}
-            <!-- Asset -->
-            <div class="flex items-center justify-between border-b px-2 py-6">
-              <div class="flex gap-2">
-                <div class="size-16 overflow-hidden rounded-full border-2 border-white">
-                  <div class="flex size-full items-center justify-center bg-gray-600 text-center">
-                    <p class="text-xs text-white">{portfolio.asset.coin}</p>
-                  </div>
-                  <!-- <img
-                   alt="EUR Logo"
-                   class="size-full"
-                   src="images/fiat-currencies/EUR.png"
-               /> -->
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p>{portfolio.asset.coin}</p>
-                  <p class="text-gray-500 dark:text-gray-400">{(1 / portfolio.asset.usd_value).toLocaleString()}</p>
-                </div>
-              </div>
-              <div class="flex flex-col text-end">
-                <p>${(portfolio.asset.usd_value * portfolio.asset.quantity).toLocaleString()}</p>
-                <p class="text-gray-500 dark:text-gray-400">
-                  {portfolio.asset.quantity.toLocaleString()}
-                  {portfolio.asset.coin}
-                </p>
-              </div>
-            </div>
-            <!--  -->
+            <AssetView asset={portfolio.asset} />
           {/each}
         </div>
       </div>
