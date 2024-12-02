@@ -2,12 +2,16 @@
   import type { ViewPairGroupsResponse } from '$lib/business/interactors/view_pair_groups/ViewPairGroupsResponse';
   import { ChevronDown, ChevronUp } from 'lucide-svelte';
   import { DateTime, Duration } from 'luxon';
+  import { onMount } from 'svelte';
 
   type PairGroup = ViewPairGroupsResponse['pair_groups'][0];
 
   export let pairGroup: PairGroup;
 
   let isOpen = false;
+
+  let baseImageSrc: string | undefined;
+  let comparisonImageSrc: string | undefined;
 
   const getHeading = (): string => {
     let comparisonHeading;
@@ -42,6 +46,31 @@
       maximumFractionDigits: 0,
     });
   };
+
+  // TODO: possibly extract to an util function
+  const getCoinImageSrc = async (coin: string): Promise<string | undefined> => {
+    const src = `/images/coin/${coin}.svg`;
+    return fetch(src)
+      .then((response) => {
+        if (response.ok) {
+          return src;
+        }
+        return undefined;
+      })
+      .catch((err) => {
+        console.error(err);
+        return undefined;
+      });
+  };
+
+  onMount(() => {
+    getCoinImageSrc(pairGroup.pairs[0].base).then((src) => {
+      baseImageSrc = src;
+    });
+    getCoinImageSrc(pairGroup.pairs[0].comparison).then((src) => {
+      comparisonImageSrc = src;
+    });
+  });
 </script>
 
 <button
@@ -50,23 +79,40 @@
 >
   <div class="flex flex-grow-0">
     <div class="size-16 overflow-hidden rounded-full border-2 border-white">
-      <div class="flex size-full items-center justify-center bg-gray-600 text-center">
-        <p class="text-xs text-white">{pairGroup.pairs[0].base}</p>
-      </div>
-      <!-- <img
-        alt="EUR Logo"
-        class="size-full"
-        src="images/fiat-currencies/EUR.png"
-      /> -->
+      {#if baseImageSrc}
+        <img
+          src={baseImageSrc}
+          alt="{pairGroup.pairs[0].base} Logo"
+          class="size-full"
+        />
+      {:else}
+        <div class="flex size-full items-center justify-center bg-gray-600 text-center">
+          <p class="text-xs text-white">{pairGroup.pairs[0].base}</p>
+        </div>
+      {/if}
     </div>
     <div class="-ml-4 size-16 overflow-hidden rounded-full border-2 border-white{isOpen ? ' hidden' : ''}">
-      <div class="flex size-full items-center justify-center bg-gray-200 text-center">
+      {#if comparisonImageSrc}
         {#if pairGroup.pairs.length > 1}
-          <p class="text-lg text-gray-600">+{pairGroup.pairs.length}</p>
+          <div class="flex size-full items-center justify-center bg-gray-200 text-center">
+            <p class="text-lg text-gray-600">+{pairGroup.pairs.length}</p>
+          </div>
         {:else}
-          <p class="text-sm text-gray-600">{pairGroup.pairs[0].comparison}</p>
+          <img
+            src={comparisonImageSrc}
+            alt="{pairGroup.pairs[0].comparison} Logo"
+            class="size-full"
+          />
         {/if}
-      </div>
+      {:else}
+        <div class="flex size-full items-center justify-center bg-gray-200 text-center">
+          {#if pairGroup.pairs.length > 1}
+            <p class="text-lg text-gray-600">+{pairGroup.pairs.length}</p>
+          {:else}
+            <p class="text-sm text-gray-600">{pairGroup.pairs[0].comparison}</p>
+          {/if}
+        </div>
+      {/if}
     </div>
   </div>
   <div class="flex flex-grow flex-col">
