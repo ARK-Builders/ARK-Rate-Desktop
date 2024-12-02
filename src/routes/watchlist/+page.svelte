@@ -170,6 +170,23 @@
     columns = columns;
   };
 
+  const onRowDragStart = (row: Pair) => (event: DragEvent) => {
+    if (!event.dataTransfer) return;
+    event.dataTransfer.setData('text/plain', row.id);
+  };
+
+  const onRowDrop = (row: Pair) => (event: DragEvent) => {
+    if (!event.dataTransfer) return;
+    const rowIndex = rows.findIndex((c) => c.id === row.id);
+    if (rowIndex < 0) return;
+    const replacementId = event.dataTransfer.getData('text/plain');
+    const replacementIndex = rows.findIndex((c) => c.id === replacementId);
+    if (replacementIndex < 0) return;
+    const replacement = rows.splice(replacementIndex, 1);
+    rows.splice(rowIndex, 0, ...replacement);
+    rows = rows;
+  };
+
   onMount(() => {
     loadWatchlist();
     const nowInterval = setInterval(() => {
@@ -235,8 +252,8 @@
                   {#if isSorting}
                     <button
                       draggable="true"
-                      on:drop={onColumnDrop(column)}
                       on:dragover|preventDefault
+                      on:drop={onColumnDrop(column)}
                       on:dragstart={onColumnDragStart(column)}
                       class="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-0 hover:cursor-move hover:opacity-100 active:cursor-grabbing"
                     >
@@ -277,17 +294,29 @@
             <tr class="border-t">
               <td class="bg-gray-100">
                 <div class="relative w-48 py-4 pl-6 pr-2">
-                  <button
-                    class="absolute inset-0 flex items-center justify-center bg-gray-100 text-red-500 opacity-0 hover:opacity-100"
-                    on:click={() =>
-                      onWatchlistPairDelete({
-                        pair: {
-                          id: row.id,
-                        },
-                      })}
-                  >
-                    <Trash class="size-6" />
-                  </button>
+                  {#if isSorting}
+                    <button
+                      draggable="true"
+                      on:dragover|preventDefault
+                      on:drop={onRowDrop(row)}
+                      on:dragstart={onRowDragStart(row)}
+                      class="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-0 hover:cursor-move hover:opacity-100 active:cursor-grabbing"
+                    >
+                      <Grip class="size-6" />
+                    </button>
+                  {:else}
+                    <button
+                      class="absolute inset-0 flex items-center justify-center bg-gray-100 text-red-500 opacity-0 hover:opacity-100"
+                      on:click={() =>
+                        onWatchlistPairDelete({
+                          pair: {
+                            id: row.id,
+                          },
+                        })}
+                    >
+                      <Trash class="size-6" />
+                    </button>
+                  {/if}
                   <CoinView coin={row.comparison} />
                 </div>
               </td>
