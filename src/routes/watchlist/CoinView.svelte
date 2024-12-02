@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { afterUpdate } from 'svelte';
 
   export let coin: string;
 
@@ -21,7 +21,7 @@
       });
   };
 
-  onMount(() => {
+  afterUpdate(() => {
     getCoinImageSrc(coin).then((src) => {
       coinImageSrc = src;
     });
